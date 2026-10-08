@@ -1,0 +1,59 @@
+
+
+
+
+
+
+A Web-based Centralized Point-of-Sales System with Reports Analytics Dashboard for Kohii Cafe by Riri
+Cabangal, Ezekiel Jeruz M.
+Fernandez, Mark Daniel
+Florencio, Patrick Yael A.
+Moralbe III, Fernando S.
+Bachelor of Science in Information Technology
+ALNESLYN C. BUCUD, MIT(c)
+
+
+
+
+
+
+
+Chapter 1
+Background of the Study
+In today's fast-paced food and beverage industry, small businesses such as cafes and coffee shops are expected to serve customers quickly while keeping accurate records of sales and stock. Efficient sales and inventory management plays a vital role in the daily operations of a cafe, as it directly affects order accuracy, product availability, and overall customer satisfaction. Proper inventory control allows a business to monitor the movement of ingredients and supplies, avoid running out of stock during peak hours, and reduce losses brought about by spoilage, overstocking, or human error.
+Kohi Cafe by Riri is a small, locally operated coffee shop that offers a variety of coffee-based beverages, non-coffee drinks, and light snacks to its customers. Like many small food and beverage establishments, the cafe currently manages its daily sales and inventory using manual methods, including handwritten order slips, a logbook for recording sales, and a physical checklist for monitoring stock of coffee beans, milk, syrups, cups, and other supplies.
+This manual approach was manageable when the cafe was just starting out and had a relatively small number of daily transactions. However, as the customer base has grown, the volume of orders and the variety of products offered have increased, making it more difficult for staff to accurately record every transaction and keep track of ingredient levels in real time. Inventory counts are typically done at the end of the day or only when supplies appear to be running low, which often leads to discrepancies between recorded stock and actual stock on hand.
+These manual practices have resulted in several recurring issues for Kohi Cafe by Riri, including delayed recognition of low or out-of-stock ingredients, inconsistent computation of daily sales totals, and the absence of a reliable way to generate accurate sales and inventory reports. Without a centralized and automated system, the owner finds it challenging to make timely, data-driven decisions regarding purchasing, pricing, and overall business operations. This study introduces An Online Sales and Inventory Management System for Kohi Cafe by Riri, which aims to modernize the cafe's existing manual processes, minimize recording errors, and provide the owner with accurate, up-to-date information for better business decision-making.
+Statement of the Problem
+The primary problem addressed in this study is the absence of an efficient and reliable system for managing sales transactions and monitoring inventory at Kohi Cafe by Riri. The cafe's continued reliance on manual recording methods results in delayed and inaccurate stock updates, inconsistent sales computations, and limited ability to generate dependable reports for business decision-making.
+General
+How can an online sales and inventory management system be designed and developed to improve the accuracy and efficiency of recording sales transactions and monitoring stock levels at Kohi Cafe by Riri?
+
+
+Specific
+	How can the manual recording of orders and sales transactions, which is time-consuming and prone to human error, be replaced with a faster and more accurate method?
+	How can inventory levels be monitored in real time so that staff can immediately detect low or out-of-stock ingredients?
+	How can the absence of a centralized record of sales and stock movement be addressed so that accurate and timely reports can be generated for the owner?
+	How can manual inventory counting, which is inconsistent and time-consuming, be improved to reduce discrepancies between recorded and actual stock levels?
+How can the owner be provided with better visibility of product performance to support informed decisions on purchasing and pricing?
+Objective
+General
+This study aims to design and develop an Online Sales and Inventory Management System for Kohi Cafe by Riri that will automate the recording of sales transactions and provide real-time monitoring of inventory to improve the accuracy, efficiency, and reliability of the cafe's daily operations.
+
+Specific
+Specifically, this study aims to:
+	Develop a system that allows staff to record customer orders and sales transactions digitally, reducing manual computation and recording errors.
+	Implement a real-time inventory monitoring feature that automatically updates stock levels as sales transactions are processed, allowing staff to immediately detect low or out-of-stock ingredients.
+	Create a reporting feature that generates accurate and timely sales and inventory reports from a centralized record of transactions and stock movement.
+	Provide an automated stock deduction and low-stock alert feature to reduce discrepancies between recorded and actual inventory levels.
+Design a product performance tracking feature that gives the owner clear visibility into sales trends to support decisions on purchasing and pricing.
+Scope and Limitation
+This study focuses on the design and development of an Online Sales and Inventory Management System for Kohi Cafe by Riri. The proposed web-based system will serve as a centralized platform for recording sales transactions, managing product and ingredient inventory, and generating sales and inventory reports. It will include features for order and sales recording, real-time inventory deduction upon order completion, low-stock notifications, and basic reporting of daily, weekly, and monthly sales. The system will be designed for use by the cafe owner and authorized staff members and will be accessible through a web browser.
+The system will be accessible only through a web browser and will not include a dedicated mobile application. It does not include features for online ordering by customers, online payment processing, or delivery tracking, as the system is intended solely for internal sales and inventory management use by the cafe owner and staff. Advanced features such as predictive analytics, automated supplier ordering, and integration with third-party point-of-sale hardware are beyond the scope of this project.
+The study and the resulting system are limited exclusively to the internal operations and requirements of Kohi Cafe by Riri and are not designed for use by other cafes or food establishments.
+Significance of the Study
+The proposed system is significant as it aims to improve the operational efficiency and accuracy of Kohi Cafe by Riri's sales and inventory processes. The result of this study will benefit the following:
+	To the Owner: The system will provide a centralized, real-time view of sales performance and inventory levels, enabling more accurate and timely business decisions regarding purchasing, pricing, and product offerings.
+	To the Staff: The system will reduce the time spent on manual recording of orders and stock counting, allowing staff to focus more on customer service and reducing the likelihood of computational errors.
+	To the Customers: Faster and more accurate order processing will lead to improved service speed and a more reliable dining experience at the cafe.
+	To Future Researchers: This study may serve as a reference or guide for future researchers and developers who wish to design similar sales and inventory management systems for small food and beverage businesses.
