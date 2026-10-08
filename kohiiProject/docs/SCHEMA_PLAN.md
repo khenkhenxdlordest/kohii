@@ -89,7 +89,8 @@ Sa Inventory page, puwedeng **i-filter ayon sa type** (Raw Materials / Packaging
 | Model | Mahahalagang field |
 |---|---|
 | `Store` | name, code (`B1`, `B2`), receiptCounter |
-| `User` | username, passwordHash, role, storeId?, isActive, mustChangePassword, lastLoginAt |
+| `User` (**AUTH lang**) | username, passwordHash, role, storeId?, isActive, mustChangePassword, lastLoginAt |
+| `UserProfile` (**PROFILE lang**, 1:1 sa User) | firstName, middleName?, lastName, contactNo?, email?, address?, birthDate?, photoUrl? |
 | `Category` | name, isActive |
 | `Product` | name, categoryId, **type** (`MADE` / `READY_MADE`), currentPrice, isActive |
 | `ProductPriceHistory` | productId, oldPrice, newPrice, changedById, changedAt |

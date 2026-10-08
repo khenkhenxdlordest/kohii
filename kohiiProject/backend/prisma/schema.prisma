@@ -90,11 +90,24 @@ model Store {
   stockMovements StockMovement[]
 }
 
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  AUTH  vs  PROFILE  — MAGKAHIWALAY NA TABLE                   ║
+// ║                                                              ║
+// ║  User        = AUTH lang: login, password, role, store,       ║
+// ║                active/deactivated. Ito ang tinitingnan ng      ║
+// ║                login at ng guards. Lahat ng relation (orders, ║
+// ║                stock, logs) ay naka-link dito.                ║
+// ║  UserProfile = PERSONAL INFO lang: pangalan, contact, email,   ║
+// ║                address, photo. Walang password o role dito.   ║
+// ║                                                              ║
+// ║  1 User ↔ 1 UserProfile (userId @unique).                     ║
+// ╚══════════════════════════════════════════════════════════════╝
+
+// ── AUTH ── credentials + access only. NO personal info here.
 model User {
   id                 Int       @id @default(autoincrement())
   username           String    @unique
-  passwordHash       String
-  fullName           String
+  passwordHash       String // plain text while PASSWORD_HASHING=false (dev), bcrypt for final
   role               Role
   storeId            Int? // null for ADMIN (sees both stores)
   isActive           Boolean   @default(true)
@@ -103,7 +116,8 @@ model User {
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
-  store Store? @relation(fields: [storeId], references: [id])
+  store   Store?       @relation(fields: [storeId], references: [id])
+  profile UserProfile?
 
   shifts          Shift[]
   orders          Order[]               @relation("OrderCashier")
@@ -117,6 +131,24 @@ model User {
   auditLogs       AuditLog[]
 
   @@index([storeId])
+}
+
+// ── PROFILE ── personal info only. NO password / role here.
+model UserProfile {
+  id         Int       @id @default(autoincrement())
+  userId     Int       @unique
+  firstName  String
+  middleName String?
+  lastName   String
+  contactNo  String?
+  email      String?   @unique
+  address    String?
+  birthDate  DateTime? @db.Date
+  photoUrl   String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // ─────────────────────── Catalog ───────────────────────
