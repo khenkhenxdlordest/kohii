@@ -1,4 +1,4 @@
-import PagePlaceholder from '../../../components/ui/PagePlaceholder';
+import PagePlaceholder from '../../../components/ui/PagePlaceholder/PagePlaceholder';
 
 function StockMovementsPage() {
   return <PagePlaceholder title="Stock Movements" description="History of every stock change." />;

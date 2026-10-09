@@ -1,14 +1,14 @@
 import { Route } from 'react-router-dom';
-import ClerkLayout from '../components/layout/ClerkLayout';
+import ClerkLayout from '../components/layout/ClerkLayout/ClerkLayout';
 import RoleRoute from './RoleRoute';
 
-import ClerkDashboardPage from '../pages/clerk/ClerkDashboardPage';
-import StoreInventoryPage from '../pages/clerk/StoreInventoryPage';
-import StockInPage from '../pages/clerk/StockInPage';
-import StockAdjustmentPage from '../pages/clerk/StockAdjustmentPage';
-import LowStockPage from '../pages/clerk/LowStockPage';
-import StockMovementsPage from '../pages/clerk/StockMovementsPage';
-import ProfilePage from '../pages/shared/ProfilePage';
+import ClerkDashboardPage from '../pages/clerk/ClerkDashboardPage/ClerkDashboardPage';
+import StoreInventoryPage from '../pages/clerk/StoreInventoryPage/StoreInventoryPage';
+import StockInPage from '../pages/clerk/StockInPage/StockInPage';
+import StockAdjustmentPage from '../pages/clerk/StockAdjustmentPage/StockAdjustmentPage';
+import LowStockPage from '../pages/clerk/LowStockPage/LowStockPage';
+import StockMovementsPage from '../pages/clerk/StockMovementsPage/StockMovementsPage';
+import ProfilePage from '../pages/shared/ProfilePage/ProfilePage';
 
 const ClerkRoutes = (
   <Route element={<RoleRoute allow={['CLERK']} />}>

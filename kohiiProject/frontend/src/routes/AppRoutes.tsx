@@ -6,9 +6,9 @@ import AdminRoutes from './AdminRoutes';
 import ClerkRoutes from './ClerkRoutes';
 import CashierRoutes from './CashierRoutes';
 
-import LoginPage from '../pages/auth/LoginPage';
-import NotFoundPage from '../pages/shared/NotFoundPage';
-import UnauthorizedPage from '../pages/shared/UnauthorizedPage';
+import LoginPage from '../pages/auth/LoginPage/LoginPage';
+import NotFoundPage from '../pages/shared/NotFoundPage/NotFoundPage';
+import UnauthorizedPage from '../pages/shared/UnauthorizedPage/UnauthorizedPage';
 
 function AppRoutes() {
   const { user } = useAuth();

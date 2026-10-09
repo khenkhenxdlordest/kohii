@@ -1,4 +1,4 @@
-import PagePlaceholder from '../../../components/ui/PagePlaceholder';
+import PagePlaceholder from '../../../components/ui/PagePlaceholder/PagePlaceholder';
 
 function ProductPerformancePage() {
   return <PagePlaceholder title="Product Performance" description="Best and least selling products." />;

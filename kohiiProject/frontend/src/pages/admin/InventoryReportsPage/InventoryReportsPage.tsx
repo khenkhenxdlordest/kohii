@@ -1,4 +1,4 @@
-import PagePlaceholder from '../../../components/ui/PagePlaceholder';
+import PagePlaceholder from '../../../components/ui/PagePlaceholder/PagePlaceholder';
 
 function InventoryReportsPage() {
   return <PagePlaceholder title="Inventory Reports" description="Stock usage, waste and adjustments." />;

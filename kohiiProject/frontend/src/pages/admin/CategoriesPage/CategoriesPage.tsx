@@ -1,4 +1,4 @@
-import PagePlaceholder from '../../../components/ui/PagePlaceholder';
+import PagePlaceholder from '../../../components/ui/PagePlaceholder/PagePlaceholder';
 
 function CategoriesPage() {
   return <PagePlaceholder title="Categories" description="Group products into menu categories." />;

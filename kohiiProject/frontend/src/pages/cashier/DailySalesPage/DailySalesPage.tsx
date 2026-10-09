@@ -1,4 +1,4 @@
-import PagePlaceholder from '../../../components/ui/PagePlaceholder';
+import PagePlaceholder from '../../../components/ui/PagePlaceholder/PagePlaceholder';
 
 function DailySalesPage() {
   return <PagePlaceholder title="Daily Sales" description="Your sales summary for today." />;

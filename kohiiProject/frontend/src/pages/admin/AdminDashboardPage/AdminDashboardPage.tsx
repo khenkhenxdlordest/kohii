@@ -1,4 +1,4 @@
-import StatCard from '../../../components/ui/StatCard';
+import StatCard from '../../../components/ui/StatCard/StatCard';
 import styles from './AdminDashboardPage.module.css';
 
 // TODO(Phase 6): palitan ng totoong data mula sa GET /api/dashboard

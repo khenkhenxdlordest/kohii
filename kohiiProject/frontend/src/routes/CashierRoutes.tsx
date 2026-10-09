@@ -1,12 +1,12 @@
 import { Route } from 'react-router-dom';
-import CashierLayout from '../components/layout/CashierLayout';
+import CashierLayout from '../components/layout/CashierLayout/CashierLayout';
 import RoleRoute from './RoleRoute';
 
-import CashierDashboardPage from '../pages/cashier/CashierDashboardPage';
-import PosPage from '../pages/cashier/PosPage';
-import OrdersPage from '../pages/cashier/OrdersPage';
-import DailySalesPage from '../pages/cashier/DailySalesPage';
-import ProfilePage from '../pages/shared/ProfilePage';
+import CashierDashboardPage from '../pages/cashier/CashierDashboardPage/CashierDashboardPage';
+import PosPage from '../pages/cashier/PosPage/PosPage';
+import OrdersPage from '../pages/cashier/OrdersPage/OrdersPage';
+import DailySalesPage from '../pages/cashier/DailySalesPage/DailySalesPage';
+import ProfilePage from '../pages/shared/ProfilePage/ProfilePage';
 
 const CashierRoutes = (
   <Route element={<RoleRoute allow={['CASHIER']} />}>

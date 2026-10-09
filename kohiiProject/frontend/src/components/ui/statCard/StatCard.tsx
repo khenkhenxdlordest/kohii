@@ -1,4 +1,4 @@
-import Icon from '../Icon';
+import Icon from '../Icon/Icon';
 import styles from './StatCard.module.css';
 
 import salesIcon from '../../../assets/icons/cards/sales.svg';

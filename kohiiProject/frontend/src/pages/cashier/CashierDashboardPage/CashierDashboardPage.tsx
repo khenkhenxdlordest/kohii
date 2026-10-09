@@ -1,4 +1,4 @@
-import StatCard from '../../../components/ui/StatCard';
+import StatCard from '../../../components/ui/StatCard/StatCard';
 import styles from './CashierDashboardPage.module.css';
 
 // TODO(Phase 3/6): palitan ng totoong data mula sa orders at dashboard API

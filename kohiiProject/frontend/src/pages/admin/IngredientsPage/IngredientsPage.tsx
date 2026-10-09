@@ -1,4 +1,4 @@
-import PagePlaceholder from '../../../components/ui/PagePlaceholder';
+import PagePlaceholder from '../../../components/ui/PagePlaceholder/PagePlaceholder';
 
 function IngredientsPage() {
   return <PagePlaceholder title="Ingredients" description="Manage ingredients and their units." />;

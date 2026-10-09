@@ -17,8 +17,10 @@
 | Lahat ng API ay nagsisimula sa `/api` | Ipinapasa ito ng Vite proxy sa `localhost:3000` |
 | Bago mag-commit | Dapat pumasa ang `npm run build` sa backend at frontend |
 | **Bawal ang emoji sa UI** | Lahat ng icon ay **SVG** na nakalagay sa `frontend/src/assets/icons/`. Walang emoji sa pages, buttons, labels o messages |
-| Images at logo sa `assets/` | Ang mga larawan ay nasa `assets/images/`, at ang logo ay nasa `assets/logo/` (SVG hangga't maaari). Bawal ang direktang link sa larawang nasa labas ng project |
-| **Bawat `.tsx` ay may sariling `.module.css`** | Bawat page at component ay may kapares na CSS module na kapangalan nito, hal. `LoginPage.tsx` + `login.module.css`, `StatCard.tsx` + `statCard.module.css`. **Bawal ang shared CSS** sa pagitan ng mga page (hal. iisang `dashboard.module.css` para sa tatlong dashboard). Ang global lang ay ang color tokens sa `index.css` |
+| Images at logo sa `assets/` | Ang mga larawan ay nasa `assets/images/`, at ang logo ay nasa `assets/images/logo/`. Bawal ang direktang link sa larawang nasa labas ng project |
+| **Bawat page at component ay may sariling folder** | Ang folder ay kapangalan ng component (PascalCase), at nasa loob nito ang `.tsx` at ang kapares nitong `.module.css`, hal. `pages/clerk/StockInPage/StockInPage.tsx` + `StockInPage.module.css`. Walang `.tsx` na nakakalat nang walang sariling folder |
+| **Bawat `.tsx` ay may sariling `.module.css`** | Kapangalan ng `.tsx` ang CSS file (`StatCard.tsx` → `StatCard.module.css`, maliit na titik ang `.module.css`). **Bawal ang shared CSS** sa pagitan ng mga page o component (hal. iisang `dashboard.module.css` para sa tatlong dashboard). Ang global lang ay ang color tokens sa `index.css` |
+| **Modal ay per page** | Nasa `components/modal/<role>/<PageName>/` ang mga modal, para malinaw kung saang page lang ito ginagamit at walang hindi kailangang pagkakakabit sa ibang page. Bawat modal ay may sariling folder din (`.tsx` + `.module.css`) |
 | Hiwalay na dashboard bawat role | May sariling dashboard, layout at routes ang Admin (owner), Clerk at Cashier. Hindi sila naghahati sa iisang dashboard page |
 
 **Default accounts (seed):** `admin`, `clerk`, `cashier.b1`, `cashier.b2`. Password: `kohii123`
@@ -54,22 +56,39 @@ Bawat module ay may: `*.module.ts` · `*.controller.ts` · `*.service.ts` · `dt
 ### Frontend (`frontend/src/`)
 ```
 api/          ← client.ts (fetch wrapper) + *.api.ts bawat module
-context/      ← AuthContext, StoreContext
+context/      ← auth.context.ts, AuthProvider.tsx, StoreContext
+hooks/        ← useAuth
 routes/       ← AppRoutes, ProtectedRoute, RoleRoute, Admin/Clerk/CashierRoutes
+types/  utils/
 components/
-  layout/     ← AdminLayout, ClerkLayout, CashierLayout, Sidebar, Navbar
-  ui/         ← Button, Table, Modal, ...
+  layout/     ← AdminLayout/, ClerkLayout/, CashierLayout/, Sidebar/, Navbar/
+  ui/         ← Icon/, StatCard/, PagePlaceholder/, StoreSwitcher/, ...
+  modal/
+    admin/    ← <PageName>/<ModalName>/  (hal. ProductsPage/AddProductModal/)
+    clerk/
+    cashier/
 pages/
-  auth/       ← Login
-  admin/      ← Dashboard, Stores, Users, Products, Categories, Ingredients,
-                Recipes, InventoryOverview, SalesReports, InventoryReports,
-                ProductPerformance
-  clerk/      ← Dashboard, StoreInventory, StockIn, StockAdjustment,
-                LowStock, StockMovements
-  cashier/    ← Dashboard, Pos, Orders, DailySales
-  shared/     ← NotFound, Unauthorized, Profile
-assets/       ← icons/, logo/, images/ (SVG)
+  auth/       ← LoginPage/
+  admin/      ← AdminDashboardPage/, StoresPage/, UsersPage/, ProductsPage/,
+                CategoriesPage/, IngredientsPage/, RecipesPage/,
+                InventoryOverviewPage/, SalesReportsPage/,
+                InventoryReportsPage/, ProductPerformancePage/
+  clerk/      ← ClerkDashboardPage/, StoreInventoryPage/, StockInPage/,
+                StockAdjustmentPage/, LowStockPage/, StockMovementsPage/
+  cashier/    ← CashierDashboardPage/, PosPage/, OrdersPage/, DailySalesPage/
+  shared/     ← NotFoundPage/, UnauthorizedPage/, ProfilePage/
+assets/
+  icons/      ← SVG icons, naka-folder ayon sa gamit (login/, sidebar/, cards/, navbar/)
+  images/     ← mga larawan (login/, logo/)
 ```
+
+**Halimbawa ng isang page folder:**
+```
+pages/clerk/StockInPage/
+  StockInPage.tsx
+  StockInPage.module.css
+```
+Ang `api/`, `context/`, `hooks/`, `routes/`, `types/` at `utils/` ay walang CSS, kaya hindi na kailangang naka-folder bawat file.
 
 ---
 

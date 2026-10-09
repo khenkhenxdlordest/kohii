@@ -1,4 +1,4 @@
-import StatCard from '../../../components/ui/StatCard';
+import StatCard from '../../../components/ui/StatCard/StatCard';
 import styles from './ClerkDashboardPage.module.css';
 
 // TODO(Phase 4/6): palitan ng totoong data mula sa inventory at dashboard API

@@ -1,19 +1,19 @@
 import { Route } from 'react-router-dom';
-import AdminLayout from '../components/layout/AdminLayout';
+import AdminLayout from '../components/layout/AdminLayout/AdminLayout';
 import RoleRoute from './RoleRoute';
 
-import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
-import ProductsPage from '../pages/admin/ProductsPage';
-import CategoriesPage from '../pages/admin/CategoriesPage';
-import IngredientsPage from '../pages/admin/IngredientsPage';
-import RecipesPage from '../pages/admin/RecipesPage';
-import InventoryOverviewPage from '../pages/admin/InventoryOverviewPage';
-import SalesReportsPage from '../pages/admin/SalesReportsPage';
-import InventoryReportsPage from '../pages/admin/InventoryReportsPage';
-import ProductPerformancePage from '../pages/admin/ProductPerformancePage';
-import StoresPage from '../pages/admin/StoresPage';
-import UsersPage from '../pages/admin/UsersPage';
-import ProfilePage from '../pages/shared/ProfilePage';
+import AdminDashboardPage from '../pages/admin/AdminDashboardPage/AdminDashboardPage';
+import ProductsPage from '../pages/admin/ProductsPage/ProductsPage';
+import CategoriesPage from '../pages/admin/CategoriesPage/CategoriesPage';
+import IngredientsPage from '../pages/admin/IngredientsPage/IngredientsPage';
+import RecipesPage from '../pages/admin/RecipesPage/RecipesPage';
+import InventoryOverviewPage from '../pages/admin/InventoryOverviewPage/InventoryOverviewPage';
+import SalesReportsPage from '../pages/admin/SalesReportsPage/SalesReportsPage';
+import InventoryReportsPage from '../pages/admin/InventoryReportsPage/InventoryReportsPage';
+import ProductPerformancePage from '../pages/admin/ProductPerformancePage/ProductPerformancePage';
+import StoresPage from '../pages/admin/StoresPage/StoresPage';
+import UsersPage from '../pages/admin/UsersPage/UsersPage';
+import ProfilePage from '../pages/shared/ProfilePage/ProfilePage';
 
 const AdminRoutes = (
   <Route element={<RoleRoute allow={['ADMIN']} />}>
