@@ -5,7 +5,13 @@ import { useAuth } from '../../../hooks/useAuth';
 import Icon from '../../ui/Icon/Icon';
 import { jobLabel } from '../../../utils/roles';
 
+import { Mascot } from 'page-mascot';
+
 import kohiLogo from '../../../assets/images/logo/kohiLogo.png';
+import foxDirections from '../../../assets/images/mascot/fox-directions.webp';
+import foxReactions from '../../../assets/images/mascot/fox-reactions.webp';
+import catDirections from '../../../assets/images/mascot/cat-directions.webp';
+import catReactions from '../../../assets/images/mascot/cat-reactions.webp';
 import profileIcon from '../../../assets/icons/sidebar/profile.svg';
 import logoutIcon from '../../../assets/icons/sidebar/logout.svg';
 
@@ -60,6 +66,12 @@ function Sidebar({ sections, profilePath }: { sections: NavSection[]; profilePat
           </div>
         ))}
       </nav>
+
+      {/* Pet friendly ang Kohii: sinusundan ng fox at pusa ang cursor at nagre-react kapag pinindot */}
+      <div className={styles.mascot}>
+        <Mascot directions={foxDirections} reactions={foxReactions} size={84} label="Kohii fox" />
+        <Mascot directions={catDirections} reactions={catReactions} size={84} label="Kohii cat" />
+      </div>
 
       <div className={styles.profile}>
         <NavLink

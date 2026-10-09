@@ -87,6 +87,20 @@
   outline-offset: 2px;
 }
 
+.mascot {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding-top: 12px;
+}
+
+/* Sa maiikling screen, itinatago para hindi masikipan ang menu */
+@media (max-height: 720px) {
+  .mascot {
+    display: none;
+  }
+}
+
 .profile {
   display: flex;
   align-items: center;
