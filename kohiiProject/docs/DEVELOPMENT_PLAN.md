@@ -20,10 +20,12 @@
 | Images at logo sa `assets/` | Ang mga larawan ay nasa `assets/images/`, at ang logo ay nasa `assets/images/logo/`. Bawal ang direktang link sa larawang nasa labas ng project |
 | **Bawat page at component ay may sariling folder** | Ang folder ay kapangalan ng component (PascalCase), at nasa loob nito ang `.tsx` at ang kapares nitong `.module.css`, hal. `pages/clerk/StockInPage/StockInPage.tsx` + `StockInPage.module.css`. Walang `.tsx` na nakakalat nang walang sariling folder |
 | **Bawat `.tsx` ay may sariling `.module.css`** | Kapangalan ng `.tsx` ang CSS file (`StatCard.tsx` → `StatCard.module.css`, maliit na titik ang `.module.css`). **Bawal ang shared CSS** sa pagitan ng mga page o component (hal. iisang `dashboard.module.css` para sa tatlong dashboard). Ang global lang ay ang color tokens sa `index.css` |
-| **Modal ay per page** | Nasa `components/modal/<role>/<PageName>/` ang mga modal, para malinaw kung saang page lang ito ginagamit at walang hindi kailangang pagkakakabit sa ibang page. Bawat modal ay may sariling folder din (`.tsx` + `.module.css`) |
+| **Modal ay per page** | Nasa `components/modal/<role>/<PageName>/` ang mga modal, para malinaw kung saang page lang ito ginagamit at walang hindi kailangang pagkakakabit sa ibang page. Bawat modal ay may sariling folder din (`.tsx` + `.module.css`). Ang base na modal na gamit ng lahat ay nasa `components/modal/Modal/` |
+| **2-click rule sa lahat ng action na may tooltip** | 1st click: lalabas ang tooltip na may label (hal. "Edit"). 2nd click: itutuloy ang aksyon (hal. bubukas ang modal). Gamitin ang `components/ui/ActionButton/`, huwag gumawa ng sariling tooltip button. Naka-portal ang tooltip kaya hindi ito napuputol ng table o modal |
+| **Tatlo lang ang makakapag-login** | Owner (ADMIN), Inventory Clerk (CLERK) at Cashier (CASHIER). Ang Barista at Kitchen ay employees na walang account (`username`, `passwordHash` at `role` ay null) |
 | Hiwalay na dashboard bawat role | May sariling dashboard, layout at routes ang Admin (owner), Clerk at Cashier. Hindi sila naghahati sa iisang dashboard page |
 
-**Default accounts (seed):** `admin`, `clerk`, `cashier.b1`, `cashier.b2`. Password: `kohii123`
+**Default accounts (seed):** `admin`, `clerk`, `cashier1`, `cashier2`. Password: `kohii123`
 
 ---
 
@@ -62,15 +64,16 @@ routes/       ← AppRoutes, ProtectedRoute, RoleRoute, Admin/Clerk/CashierRoute
 types/  utils/
 components/
   layout/     ← AdminLayout/, ClerkLayout/, CashierLayout/, Sidebar/, Navbar/
-  ui/         ← Icon/, StatCard/, PagePlaceholder/, StoreSwitcher/, ...
+  ui/         ← Icon/, Button/, DataTable/, StatusBadge/, StatCard/, UserAvatar/, ...
   modal/
-    admin/    ← <PageName>/<ModalName>/  (hal. ProductsPage/AddProductModal/)
+    Modal/    ← base na modal (dialog, animation, backdrop) na gamit ng lahat ng modal
+    admin/    ← <PageName>/<ModalName>/  (hal. ProductsPage/ManageCategoriesModal/)
     clerk/
     cashier/
 pages/
   auth/       ← LoginPage/
-  admin/      ← AdminDashboardPage/, StoresPage/, UsersPage/, ProductsPage/,
-                CategoriesPage/, IngredientsPage/, RecipesPage/,
+  admin/      ← AdminDashboardPage/, StoresPage/, EmployeesPage/, ProductsPage/,
+                IngredientsPage/, RecipesPage/,
                 InventoryOverviewPage/, SalesReportsPage/,
                 InventoryReportsPage/, ProductPerformancePage/
   clerk/      ← ClerkDashboardPage/, StoreInventoryPage/, StockInPage/,
@@ -110,14 +113,19 @@ Bawat phase: **backend endpoint → frontend page → test sa browser → commit
 **Login page design:** pulido at pang-presentation na itsura, batay sa reference design na pipiliin ng team. Ang mga images ay nasa `assets/images/` at ang mga icon (user, password, show/hide, atbp.) ay SVG sa `assets/icons/`. Walang emoji
 **Kailangang i-install:** `@nestjs/jwt`, `react-router-dom`
 **Tapos na kapag:** nakakapag-login ang bawat role at hindi nila mabuksan ang page ng ibang role
+- [x] Login, `me`, JWT guard, RolesGuard, LoginPage, routes at 3 layouts
+- [ ] `POST /api/auth/change-password` at sapilitang pagpapalit sa unang login (`mustChangePassword`)
 
 ### Phase 2 — Admin: Master data
-- Users: listahan, gumawa, i-edit, i-deactivate o i-activate, i-reset ang password
-- Stores, Categories
-- Products + **price change na may history**
-- Inventory items (filter: Raw Material / Packaging / Snack)
-- Recipes (product → items + qty)
-- AuditLog sa bawat price change o deactivate
+- [x] **Employees** (dating Users): listahan, gumawa, i-edit, i-deactivate o i-activate (isa o marami), i-reset ang password (`/api/employees`). Hindi puwedeng i-deactivate o palitan ang trabaho ng sariling account
+- [x] Stores: dalawang store, **Alley** (sa baba, may kitchen) at **Podium** (sa likod). Centralized: iisang menu at inventory. Dalawang table ng staff; dito nagde-deploy at naglilipat ng staff ang owner (`POST /api/stores/:id/deploy`)
+- [x] Trabaho ng employee: Owner, Inventory Clerk, Cashier, Barista, Kitchen. **Tatlo lang ang may login: owner (ADMIN), clerk at cashier.** Ang barista at kitchen ay nakalista lang (walang username/password). **Kitchen sa Alley lang**
+- [x] Shift ng store staff: **AM o PM** (kumpirmahin sa store)
+- [x] Categories: add, edit, activate/deactivate (`/api/categories`). Walang sariling page; nasa **Manage Categories** na modal sa Products page. May menu group ang bawat category (Drinks / Rice Meals / Snacks); **Drinks lang ang may upsize**
+- [x] Products + **price change na may history** (`/api/products`, `PATCH /api/products/:id/price`). Isang tab at table bawat category; Regular at Upsize na presyo
+- [x] Inventory items, backend lang (`/api/inventory/items`, filter: Raw Material / Packaging / Snack / Meal, may pack size). Wala pang UI
+- [ ] Recipes (product → items + qty)
+- [x] AuditLog sa bawat create, edit, price change o deactivate ng category at product
 
 ### Phase 3 — Cashier: POS
 - Open shift (opening cash)
@@ -128,6 +136,11 @@ Bawat phase: **backend endpoint → frontend page → test sa browser → commit
 - Void request
 
 ### Phase 4 — Clerk: Inventory
+> **Pansamantala habang hinihintay ang sagot ng store** ([`STORE_QUESTIONS.md`](STORE_QUESTIONS.md)): binabawasan ang stock kapag **kumuha ang barista ng isang buong pack/pouch** sa inventory (`WITHDRAW`), hindi bawat benta. Puwede pa itong palitan kapag nasagot na ang mga tanong.
+- [x] Backend: stock in / increment (`POST /api/inventory/items/:id/stock-in`, `{ packs }` o `{ qty }`)
+- [x] Backend: withdraw / decrement (`POST /api/inventory/items/:id/withdraw`), hindi puwedeng mag-negative kahit sabay ang kuha
+- [x] Backend: movement history (`GET /api/inventory/movements`) at low stock (`GET /api/inventory/low-stock`)
+- [ ] UI ng Stock In, Withdraw, Low Stock at Movements
 - Stock-in (bilang lang)
 - Stock audit: draft → bilang → variance → finalize (awtomatikong `AUDIT_ADJUST`)
 - Waste / spoilage log

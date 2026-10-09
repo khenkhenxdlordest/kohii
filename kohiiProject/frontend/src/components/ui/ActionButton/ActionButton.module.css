@@ -1,0 +1,135 @@
+.button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.button:hover,
+.button:focus-visible {
+  outline: none;
+  background: var(--cream);
+  color: var(--espresso);
+}
+
+.button:focus-visible {
+  box-shadow: 0 0 0 2px var(--espresso);
+}
+
+.button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.success:hover,
+.success.armed {
+  background: #dcebe5;
+  color: #2f6b4f;
+}
+
+.danger:hover,
+.danger.armed {
+  background: #fbeceb;
+  color: #9b2c2c;
+}
+
+.default.armed {
+  background: var(--cream);
+  color: var(--espresso);
+}
+
+/* Naka-arm (naghihintay ng 2nd click): bahagyang kumikislap */
+.armed {
+  animation: armedPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes armedPulse {
+  50% { box-shadow: 0 0 0 4px rgba(31, 23, 18, 0.1); }
+}
+
+/* ── Tooltip (naka-portal, position: fixed) ── */
+.tooltip {
+  --tip: var(--espresso);
+  position: fixed;
+  z-index: 1000;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: var(--tip);
+  color: #fff;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 8px 20px -6px rgba(31, 23, 18, 0.35);
+  transform: translateX(-50%);
+}
+
+/* Unang render: sinusukat muna ang laki bago ilagay sa tamang pwesto */
+.measuring {
+  top: 0;
+  left: 0;
+  visibility: hidden;
+}
+
+.top {
+  animation: tipFromBelow 160ms ease;
+}
+
+.bottom {
+  animation: tipFromAbove 160ms ease;
+}
+
+/* Arrow */
+.tooltip::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  border: 5px solid transparent;
+  transform: translateX(-50%);
+}
+
+.top::after {
+  top: 100%;
+  border-top-color: var(--tip);
+}
+
+.bottom::after {
+  bottom: 100%;
+  border-bottom-color: var(--tip);
+}
+
+.tip_success {
+  --tip: #2f6b4f;
+}
+
+.tip_danger {
+  --tip: #9b2c2c;
+}
+
+@keyframes tipFromBelow {
+  from { opacity: 0; transform: translate(-50%, 4px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@keyframes tipFromAbove {
+  from { opacity: 0; transform: translate(-50%, -4px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .armed,
+  .top,
+  .bottom {
+    animation: none;
+  }
+}

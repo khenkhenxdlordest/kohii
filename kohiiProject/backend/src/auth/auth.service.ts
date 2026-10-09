@@ -9,6 +9,8 @@ const userSelect = {
   username: true,
   role: true,
   storeId: true,
+  position: true,
+  shift: true,
   mustChangePassword: true,
   profile: { select: { firstName: true, lastName: true } },
   store: { select: { code: true, name: true } },
@@ -28,7 +30,15 @@ export class AuthService {
     });
 
     // Iisang mensahe para hindi malaman kung username o password ang mali
-    if (!user || !user.isActive || !(await verifyPassword(password, user.passwordHash))) {
+    // Owner, clerk at cashier lang ang may login; ang barista at kitchen ay walang password at role
+    if (
+      !user ||
+      !user.isActive ||
+      !user.role ||
+      !user.username ||
+      !user.passwordHash ||
+      !(await verifyPassword(password, user.passwordHash))
+    ) {
       throw new UnauthorizedException('Invalid username or password.');
     }
 
@@ -47,7 +57,7 @@ export class AuthService {
 
   async me(userId: number) {
     const user = await this.prisma.user.findUnique({
-      where: { id: userId, isActive: true },
+      where: { id: userId, isActive: true, role: { not: null } },
       select: userSelect,
     });
     if (!user) throw new UnauthorizedException('Account not found or deactivated.');

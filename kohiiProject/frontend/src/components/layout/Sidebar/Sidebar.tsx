@@ -3,7 +3,7 @@ import styles from './Sidebar.module.css';
 
 import { useAuth } from '../../../hooks/useAuth';
 import Icon from '../../ui/Icon/Icon';
-import { roleLabels } from '../../../utils/roles';
+import { jobLabel } from '../../../utils/roles';
 
 import kohiLogo from '../../../assets/images/logo/kohiLogo.png';
 import profileIcon from '../../../assets/icons/sidebar/profile.svg';
@@ -75,7 +75,7 @@ function Sidebar({ sections, profilePath }: { sections: NavSection[]; profilePat
             <span className={styles.profileName}>
               {user?.profile ? `${user.profile.firstName} ${user.profile.lastName}` : user?.username}
             </span>
-            <span className={styles.profileRole}>{user ? roleLabels[user.role] : ''}</span>
+            <span className={styles.profileRole}>{user ? `${jobLabel(user)}${user.store ? ` · ${user.store.name}` : ''}` : ''}</span>
           </span>
         </NavLink>
         <button

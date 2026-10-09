@@ -19,6 +19,12 @@
 .stockIn { --tone: #3f6b5c; --tone-soft: #dcebe5; }
 .lowStock { --tone: #b07a1a; --tone-soft: #f6ead0; }
 .outOfStock { --tone: #9b2c2c; --tone-soft: #f6dddb; }
+.users { --tone: #1f1712; --tone-soft: #ece2d6; }
+.owners { --tone: #b07a1a; --tone-soft: #f6ead0; }
+.clerks { --tone: #3f6b5c; --tone-soft: #dcebe5; }
+.cashiers { --tone: #8a5a3c; --tone-soft: #f3e4d8; }
+.baristas { --tone: #5b6b3a; --tone-soft: #e8ecd9; }
+.kitchen { --tone: #9b2c2c; --tone-soft: #f6dddb; }
 
 .accent {
   position: absolute;

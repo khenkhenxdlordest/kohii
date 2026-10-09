@@ -1,1 +1,389 @@
-/* Styles para sa ProductsPage */
+.page {
+  padding-bottom: 40px;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.title {
+  margin: 0;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 30px;
+  font-weight: 400;
+  color: var(--espresso);
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* ── Toolbar: nakadikit sa itaas habang nag-i-scroll ── */
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  margin-bottom: 8px;
+  background: var(--cream);
+  box-shadow: 0 10px 12px -12px rgba(31, 23, 18, 0.25);
+}
+
+.search {
+  flex: 1 1 260px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.search:focus-within {
+  border-color: var(--espresso);
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.segmented {
+  display: inline-flex;
+  height: 42px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.segmented button {
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.segmented button:focus-visible {
+  outline: 2px solid var(--espresso);
+}
+
+.segmented .segmentActive {
+  background: var(--espresso);
+  color: var(--cream);
+}
+
+/* Pills: iniaakyat ang table sa itaas (sorting lang, walang scroll) */
+.sortPills {
+  display: flex;
+  flex-basis: 100%;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.sortLabel {
+  margin-right: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.sortPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+}
+
+.sortPill:hover {
+  border-color: var(--espresso);
+  color: var(--espresso);
+}
+
+.sortPill:focus-visible {
+  outline: 2px solid var(--espresso);
+  outline-offset: 1px;
+}
+
+/* Ang table na nasa pinakaitaas ngayon */
+.sortPillFirst,
+.sortPillFirst:hover {
+  border-color: var(--espresso);
+  background: var(--espresso);
+  color: var(--cream);
+}
+
+.sortPillFirst .groupDot {
+  box-shadow: 0 0 0 1.5px var(--cream);
+}
+
+.alert {
+  margin: 8px 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fbeceb;
+  font-size: 13px;
+  font-weight: 500;
+  color: #9b2c2c;
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 0;
+  padding: 48px 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  font-size: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.state p {
+  margin: 0;
+}
+
+/* ── Isang section bawat category ── */
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  margin-top: 12px;
+  /* Para hindi hilahin ng browser ang scroll kapag nagpalit ng pwesto ang mga table */
+  overflow-anchor: none;
+}
+
+.categorySection {
+  border-radius: 20px;
+  transition: opacity 150ms ease, box-shadow 150ms ease;
+  animation: sectionIn 300ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+@keyframes sectionIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.dragging {
+  opacity: 0.45;
+}
+
+.dropTarget {
+  box-shadow: 0 0 0 2px var(--espresso), 0 12px 30px -16px rgba(31, 23, 18, 0.4);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.dragHandle {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px dashed transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  cursor: grab;
+}
+
+.dragHandle:hover {
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--espresso);
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.dragHandle:focus-visible {
+  outline: 2px solid var(--espresso);
+}
+
+.sectionTitleWrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--espresso);
+}
+
+.sectionMeta {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.inactiveTag {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #ece6df;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.sectionActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.moveButtons {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.moveButton {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.moveButton:hover:not(:disabled) {
+  background: var(--cream);
+  color: var(--espresso);
+}
+
+.moveButton:focus-visible {
+  outline: 2px solid var(--espresso);
+}
+
+.moveButton:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Kulay ng menu group: Drinks / Rice Meals / Snacks */
+.groupDot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.DRINKS {
+  background: #1f1712;
+}
+
+.RICE_MEALS {
+  background: #c08552;
+}
+
+.SNACKS {
+  background: #5b6b3a;
+}
+
+/* ── Laman ng table ── */
+.name {
+  display: block;
+  font-weight: 600;
+}
+
+.type {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.price {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.noUpsize {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .categorySection {
+    animation: none;
+    transition: none;
+  }
+}

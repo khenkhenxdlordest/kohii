@@ -1,0 +1,138 @@
+.dialog {
+  max-height: calc(100svh - 32px);
+  padding: 0;
+  border: none;
+  border-radius: 22px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 30px 80px -20px rgba(31, 23, 18, 0.45);
+}
+
+.dialog::backdrop {
+  background: rgba(31, 23, 18, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+.dialog[open] {
+  animation: modalIn 240ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.dialog[open]::backdrop {
+  animation: backdropIn 220ms ease;
+}
+
+.closing[open] {
+  animation: modalOut 200ms cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+}
+
+.closing[open]::backdrop {
+  animation: backdropOut 200ms ease forwards;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px 0;
+}
+
+.heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.headerIcon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--cream);
+  color: var(--espresso);
+}
+
+.title {
+  margin: 0;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--espresso);
+}
+
+.description {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.closeButton {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  background: var(--cream);
+  color: var(--espresso);
+}
+
+.closeButton:focus-visible {
+  outline: 2px solid var(--espresso);
+}
+
+.body {
+  padding: 20px 24px;
+  overflow-y: auto;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px 22px;
+  border-top: 1px solid var(--line);
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes modalOut {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(-8px) scale(0.985); }
+}
+
+@keyframes backdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes backdropOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog[open],
+  .dialog[open]::backdrop,
+  .closing[open],
+  .closing[open]::backdrop {
+    animation: none;
+  }
+}

@@ -1,0 +1,200 @@
+.controls {
+  display: flex;
+  gap: 8px;
+}
+
+.search {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+}
+
+.search:focus-within {
+  border-color: var(--espresso);
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+/* Error na dumudulas pababa, katulad ng reference */
+.errorSlot {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: max-height 180ms cubic-bezier(0.2, 0.9, 0.3, 1), opacity 180ms ease, transform 180ms ease;
+}
+
+.errorVisible {
+  max-height: 60px;
+  opacity: 1;
+  transform: none;
+}
+
+.errorText {
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fbeceb;
+  font-size: 12px;
+  font-weight: 500;
+  color: #9b2c2c;
+  text-align: center;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: min(52vh, 420px);
+  margin: 14px 0 0;
+  padding: 2px 4px 2px 0;
+  list-style: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--latte) transparent;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 10px 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  animation: rowIn 260ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.row:hover {
+  border-color: var(--latte);
+}
+
+@keyframes rowIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
+.inactive {
+  background: var(--surface);
+}
+
+.inactive .name,
+.inactive .dot {
+  opacity: 0.55;
+}
+
+.dot {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.DRINKS {
+  background: #1f1712;
+}
+
+.RICE_MEALS {
+  background: #c08552;
+}
+
+.SNACKS {
+  background: #5b6b3a;
+}
+
+.meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.inactiveTag {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #ece6df;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.count {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  margin: 7px 24px;
+  border-radius: 50%;
+  border: 2px solid var(--latte);
+  border-top-color: var(--espresso);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.empty {
+  padding: 16px 0;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.backButton {
+  width: 100%;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row {
+    animation: none;
+  }
+
+  .errorSlot {
+    transition: none;
+  }
+}

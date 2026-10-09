@@ -7,10 +7,28 @@ import lowStockIcon from '../../../assets/icons/cards/low-stock.svg';
 import outOfStockIcon from '../../../assets/icons/cards/out-of-stock.svg';
 import stockInIcon from '../../../assets/icons/cards/stock-in.svg';
 import productsIcon from '../../../assets/icons/cards/products.svg';
+import usersIcon from '../../../assets/icons/cards/users.svg';
+import ownerIcon from '../../../assets/icons/cards/owner.svg';
+import clerkIcon from '../../../assets/icons/cards/clerk.svg';
+import cashierIcon from '../../../assets/icons/cards/cashier.svg';
+import baristaIcon from '../../../assets/icons/cards/barista.svg';
+import kitchenIcon from '../../../assets/icons/cards/kitchen.svg';
 import trendUpIcon from '../../../assets/icons/cards/trend-up.svg';
 import trendDownIcon from '../../../assets/icons/cards/trend-down.svg';
 
-export type StatCardVariant = 'sales' | 'orders' | 'lowStock' | 'outOfStock' | 'stockIn' | 'products';
+export type StatCardVariant =
+  | 'sales'
+  | 'orders'
+  | 'lowStock'
+  | 'outOfStock'
+  | 'stockIn'
+  | 'products'
+  | 'users'
+  | 'owners'
+  | 'clerks'
+  | 'cashiers'
+  | 'baristas'
+  | 'kitchen';
 
 const variantIcons: Record<StatCardVariant, string> = {
   sales: salesIcon,
@@ -19,6 +37,12 @@ const variantIcons: Record<StatCardVariant, string> = {
   outOfStock: outOfStockIcon,
   stockIn: stockInIcon,
   products: productsIcon,
+  users: usersIcon,
+  owners: ownerIcon,
+  clerks: clerkIcon,
+  cashiers: cashierIcon,
+  baristas: baristaIcon,
+  kitchen: kitchenIcon,
 };
 
 interface StatCardProps {

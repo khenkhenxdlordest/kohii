@@ -5,7 +5,6 @@ import styles from './AdminLayout.module.css';
 
 import dashboardIcon from '../../../assets/icons/sidebar/dashboard.svg';
 import productsIcon from '../../../assets/icons/sidebar/products.svg';
-import categoriesIcon from '../../../assets/icons/sidebar/categories.svg';
 import ingredientsIcon from '../../../assets/icons/sidebar/ingredients.svg';
 import recipesIcon from '../../../assets/icons/sidebar/recipes.svg';
 import inventoryIcon from '../../../assets/icons/sidebar/inventory.svg';
@@ -24,7 +23,6 @@ const adminNav: NavSection[] = [
     title: 'Menu',
     items: [
       { label: 'Products', to: '/admin/products', icon: productsIcon },
-      { label: 'Categories', to: '/admin/categories', icon: categoriesIcon },
       { label: 'Ingredients', to: '/admin/ingredients', icon: ingredientsIcon },
       { label: 'Recipes', to: '/admin/recipes', icon: recipesIcon },
     ],
@@ -42,7 +40,7 @@ const adminNav: NavSection[] = [
     title: 'Management',
     items: [
       { label: 'Stores', to: '/admin/stores', icon: storeIcon },
-      { label: 'Users', to: '/admin/users', icon: usersIcon },
+      { label: 'Employees', to: '/admin/employees', icon: usersIcon },
     ],
   },
 ];

@@ -1,1 +1,246 @@
-/* Styles para sa StoresPage */
+.page {
+  padding-bottom: 40px;
+}
+
+.header {
+  margin-bottom: 14px;
+}
+
+.title {
+  margin: 0;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 30px;
+  font-weight: 400;
+  color: var(--espresso);
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.alert,
+.notice {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.alert {
+  background: #fbeceb;
+  color: #9b2c2c;
+}
+
+.notice {
+  background: #dcebe5;
+  color: #2f6b4f;
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 48px 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  font-size: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.state p {
+  margin: 0;
+}
+
+/* ── Isang section bawat store ── */
+.stores {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.store {
+  animation: storeIn 320ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+@keyframes storeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.storeHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.storeInfo {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.storeName {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 26px;
+  font-weight: 400;
+  color: var(--espresso);
+}
+
+.storeCode {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--cream);
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+
+.storeMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.kitchenTag {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #ece6df;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.kitchenYes {
+  background: #f6dddb;
+  color: #9b2c2c;
+}
+
+.counts {
+  display: flex;
+  gap: 6px;
+}
+
+.count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 70px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.countValue {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Laman ng table ── */
+.person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.personText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.username {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.positionBadge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.CASHIER {
+  background: #f3e4d8;
+  color: #8a5a3c;
+}
+
+.BARISTA {
+  background: #e8ecd9;
+  color: #5b6b3a;
+}
+
+.KITCHEN {
+  background: #f6dddb;
+  color: #9b2c2c;
+}
+
+.date {
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.muted {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .store {
+    animation: none;
+  }
+}
+
+.shiftBadge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.shiftAM {
+  background: #fdf0d2;
+  color: #8a5f12;
+}
+
+.shiftPM {
+  background: #e3e2ef;
+  color: #3f3d6b;
+}

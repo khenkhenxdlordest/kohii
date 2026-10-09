@@ -5,9 +5,11 @@ import { hashPassword } from '../src/common/utils/password.js';
 import { PrismaPg } from '@prisma/adapter-pg';
 import {
   PrismaClient,
+  CategoryGroup,
   InventoryItemType,
   ProductType,
   Role,
+  StaffPosition,
   Unit,
 } from '../src/generated/prisma/client.js';
 
@@ -19,24 +21,31 @@ const DEFAULT_PASSWORD = 'kohii123'; // must be changed on first login
 
 async function main() {
   // ── Stores ──
-  const b1 = await prisma.store.upsert({
-    where: { code: 'B1' },
+  const alley = await prisma.store.upsert({
+    where: { code: 'ALY' },
     update: {},
-    create: { code: 'B1', name: 'Kohii Cafe by Riri - Branch 1' },
+    create: { code: 'ALY', name: 'Alley', hasKitchen: true },
   });
-  const b2 = await prisma.store.upsert({
-    where: { code: 'B2' },
+  const podium = await prisma.store.upsert({
+    where: { code: 'PDM' },
     update: {},
-    create: { code: 'B2', name: 'Kohii Cafe by Riri - Branch 2' },
+    create: { code: 'PDM', name: 'Podium', hasKitchen: false },
   });
 
   // ── Users ──
   const passwordHash = await hashPassword(DEFAULT_PASSWORD);
-  const users: { username: string; role: Role; storeId: number | null; firstName: string; lastName: string }[] = [
+  const users: {
+    username: string;
+    role: Role;
+    storeId: number | null;
+    position?: StaffPosition;
+    firstName: string;
+    lastName: string;
+  }[] = [
     { username: 'admin', role: Role.ADMIN, storeId: null, firstName: 'Kohii', lastName: 'Owner' },
     { username: 'clerk', role: Role.CLERK, storeId: null, firstName: 'Inventory', lastName: 'Clerk' },
-    { username: 'cashier.b1', role: Role.CASHIER, storeId: b1.id, firstName: 'Cashier', lastName: 'Branch 1' },
-    { username: 'cashier.b2', role: Role.CASHIER, storeId: b2.id, firstName: 'Cashier', lastName: 'Branch 2' },
+    { username: 'cashier1', role: Role.CASHIER, storeId: alley.id, position: StaffPosition.CASHIER, firstName: 'Cashier', lastName: 'Alley' },
+    { username: 'cashier2', role: Role.CASHIER, storeId: podium.id, position: StaffPosition.CASHIER, firstName: 'Cashier', lastName: 'Podium' },
   ];
   for (const { firstName, lastName, ...auth } of users) {
     // AUTH row (User) + PROFILE row (UserProfile) are separate tables.
@@ -52,32 +61,58 @@ async function main() {
   const admin = await prisma.user.findUniqueOrThrow({ where: { username: 'admin' } });
 
   // ── Categories ──
-  const categoryNames = ['Coffee', 'Non-Coffee', 'Snacks'];
+  // Drinks lang ang puwedeng may upsize
+  const categoryGroups: Record<string, CategoryGroup> = {
+    Coffee: CategoryGroup.DRINKS,
+    'Non-Coffee': CategoryGroup.DRINKS,
+    'Rice Meals': CategoryGroup.RICE_MEALS,
+    Snacks: CategoryGroup.SNACKS,
+  };
   const categories: Record<string, number> = {};
-  for (const name of categoryNames) {
-    const c = await prisma.category.upsert({ where: { name }, update: {}, create: { name } });
+  for (const [name, group] of Object.entries(categoryGroups)) {
+    const c = await prisma.category.upsert({ where: { name }, update: { group }, create: { name, group } });
     categories[name] = c.id;
   }
 
   // ── Inventory items (one pooled stock) ──
-  const items: { name: string; type: InventoryItemType; unit: Unit; stockQty: number; lowStockThreshold: number }[] = [
-    { name: 'Espresso Beans', type: InventoryItemType.RAW_MATERIAL, unit: Unit.G, stockQty: 5000, lowStockThreshold: 1000 },
-    { name: 'Fresh Milk', type: InventoryItemType.RAW_MATERIAL, unit: Unit.ML, stockQty: 10000, lowStockThreshold: 2000 },
-    { name: 'Matcha Powder', type: InventoryItemType.RAW_MATERIAL, unit: Unit.G, stockQty: 1000, lowStockThreshold: 200 },
-    { name: 'Chocolate Syrup', type: InventoryItemType.RAW_MATERIAL, unit: Unit.ML, stockQty: 2000, lowStockThreshold: 400 },
-    { name: 'Caramel Syrup', type: InventoryItemType.RAW_MATERIAL, unit: Unit.ML, stockQty: 2000, lowStockThreshold: 400 },
-    { name: 'Sugar Syrup', type: InventoryItemType.RAW_MATERIAL, unit: Unit.ML, stockQty: 3000, lowStockThreshold: 500 },
+  // packSize/packLabel: sample lang; kumpirmahin sa store (docs/STORE_QUESTIONS.md)
+  const items: {
+    name: string;
+    type: InventoryItemType;
+    unit: Unit;
+    stockQty: number;
+    lowStockThreshold: number;
+    packSize?: number;
+    packLabel?: string;
+  }[] = [
+    { name: 'Espresso Beans', type: InventoryItemType.RAW_MATERIAL, unit: Unit.G, stockQty: 5000, lowStockThreshold: 1000, packSize: 1000, packLabel: 'bag' },
+    { name: 'Fresh Milk', type: InventoryItemType.RAW_MATERIAL, unit: Unit.ML, stockQty: 10000, lowStockThreshold: 2000, packSize: 1000, packLabel: 'pouch' },
+    { name: 'Matcha Powder', type: InventoryItemType.RAW_MATERIAL, unit: Unit.G, stockQty: 1000, lowStockThreshold: 200, packSize: 500, packLabel: 'pouch' },
+    { name: 'Chocolate Syrup', type: InventoryItemType.RAW_MATERIAL, unit: Unit.ML, stockQty: 2000, lowStockThreshold: 400, packSize: 1000, packLabel: 'bottle' },
+    { name: 'Caramel Syrup', type: InventoryItemType.RAW_MATERIAL, unit: Unit.ML, stockQty: 2000, lowStockThreshold: 400, packSize: 1000, packLabel: 'bottle' },
+    { name: 'Sugar Syrup', type: InventoryItemType.RAW_MATERIAL, unit: Unit.ML, stockQty: 3000, lowStockThreshold: 500, packSize: 1000, packLabel: 'bottle' },
     { name: '16oz Cup', type: InventoryItemType.PACKAGING, unit: Unit.PCS, stockQty: 500, lowStockThreshold: 100 },
     { name: 'Flat Lid', type: InventoryItemType.PACKAGING, unit: Unit.PCS, stockQty: 500, lowStockThreshold: 100 },
     { name: 'Straw', type: InventoryItemType.PACKAGING, unit: Unit.PCS, stockQty: 1000, lowStockThreshold: 200 },
     { name: 'Choco Chip Cookie', type: InventoryItemType.SNACK, unit: Unit.PCS, stockQty: 50, lowStockThreshold: 10 },
     { name: 'Banana Bread', type: InventoryItemType.SNACK, unit: Unit.PCS, stockQty: 30, lowStockThreshold: 5 },
     { name: 'Bottled Water', type: InventoryItemType.SNACK, unit: Unit.PCS, stockQty: 48, lowStockThreshold: 12 },
+    { name: 'Calbee Honey Butter Chips', type: InventoryItemType.SNACK, unit: Unit.PCS, stockQty: 24, lowStockThreshold: 6 },
+    { name: 'Nachos', type: InventoryItemType.SNACK, unit: Unit.G, stockQty: 2000, lowStockThreshold: 500, packSize: 500, packLabel: 'pack' },
+    // Meals: sample lang hangga't wala pa ang totoong menu
+    { name: 'Hotdog', type: InventoryItemType.MEAL, unit: Unit.PCS, stockQty: 40, lowStockThreshold: 10, packSize: 10, packLabel: 'pack' },
+    { name: 'Corned Beef', type: InventoryItemType.MEAL, unit: Unit.PCS, stockQty: 12, lowStockThreshold: 4, packSize: 1, packLabel: 'can' },
+    { name: 'Spam', type: InventoryItemType.MEAL, unit: Unit.PCS, stockQty: 12, lowStockThreshold: 4, packSize: 1, packLabel: 'can' },
+    { name: 'Frozen Fries', type: InventoryItemType.MEAL, unit: Unit.G, stockQty: 5000, lowStockThreshold: 1000, packSize: 1000, packLabel: 'pack' },
   ];
   const inv: Record<string, number> = {};
   for (const it of items) {
     const existing = await prisma.inventoryItem.findUnique({ where: { name: it.name } });
     if (existing) {
+      // Idagdag ang pack size sa lumang item kung wala pa
+      if (it.packSize && !existing.packSize) {
+        await prisma.inventoryItem.update({ where: { id: existing.id }, data: { packSize: it.packSize, packLabel: it.packLabel } });
+      }
       inv[it.name] = existing.id;
       continue;
     }

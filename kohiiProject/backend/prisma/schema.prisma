@@ -20,15 +20,40 @@ enum Role {
   CASHIER
 }
 
+// Job of a store staff account (role CASHIER). KITCHEN only in a store with a kitchen (Alley).
+enum StaffPosition {
+  CASHIER
+  BARISTA
+  KITCHEN
+}
+
+enum StaffShift {
+  AM
+  PM
+}
+
 enum ProductType {
   MADE // deducts stock via recipe (latte, matcha)
   READY_MADE // resold snack; recipe = 1 pc of its own InventoryItem
 }
 
+enum ProductSize {
+  REGULAR
+  UPSIZE
+}
+
+// Menu group of a category. Only DRINKS can have an upsize price.
+enum CategoryGroup {
+  DRINKS // Coffee, Non-Coffee (soda, juice)
+  RICE_MEALS
+  SNACKS
+}
+
 enum InventoryItemType {
   RAW_MATERIAL
   PACKAGING
-  SNACK
+  SNACK // resold as is (Calbee, nachos)
+  MEAL // ingredients for meals (hotdog, corned beef, spam, fries)
 }
 
 enum Unit {
@@ -70,6 +95,7 @@ enum StockMovementType {
   AUDIT_ADJUST
   WASTE
   VOID_RETURN
+  WITHDRAW // barista takes a pack/pouch out of storage for use
 }
 
 // ──────────────────── Stores & Users ────────────────────
@@ -79,6 +105,7 @@ model Store {
   code           String   @unique // B1, B2 — receipt prefix
   name           String
   address        String?
+  hasKitchen     Boolean  @default(false) // only Alley has a kitchen
   receiptCounter Int      @default(0)
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
@@ -106,10 +133,12 @@ model Store {
 // ── AUTH ── credentials + access only. NO personal info here.
 model User {
   id                 Int       @id @default(autoincrement())
-  username           String    @unique
-  passwordHash       String // plain text while PASSWORD_HASHING=false (dev), bcrypt for final
-  role               Role
+  username           String?   @unique // null = employee with no login (barista, kitchen)
+  passwordHash       String? // null = no login. Plain text while PASSWORD_HASHING=false (dev), bcrypt for final
+  role               Role? // login access: ADMIN, CLERK, CASHIER. null = no login (barista, kitchen)
   storeId            Int? // null for ADMIN (sees both stores)
+  position           StaffPosition? // store staff only: cashier, barista or kitchen
+  shift              StaffShift? // AM or PM, store staff only
   isActive           Boolean   @default(true)
   mustChangePassword Boolean   @default(true)
   lastLoginAt        DateTime?
@@ -156,6 +185,7 @@ model UserProfile {
 model Category {
   id        Int      @id @default(autoincrement())
   name      String   @unique
+  group     CategoryGroup @default(DRINKS)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -169,6 +199,7 @@ model Product {
   categoryId   Int
   type         ProductType
   currentPrice Decimal     @db.Decimal(10, 2) // set by ADMIN only
+  upsizePrice  Decimal?    @db.Decimal(10, 2) // null = no upsize (snacks, meals); price varies per drink
   imageUrl     String?
   isActive     Boolean     @default(true)
   createdAt    DateTime    @default(now())
@@ -185,8 +216,9 @@ model Product {
 model ProductPriceHistory {
   id          Int      @id @default(autoincrement())
   productId   Int
-  oldPrice    Decimal? @db.Decimal(10, 2) // null on first price
-  newPrice    Decimal  @db.Decimal(10, 2)
+  size        ProductSize @default(REGULAR)
+  oldPrice    Decimal? @db.Decimal(10, 2) // null on first price (or when upsize is first added)
+  newPrice    Decimal? @db.Decimal(10, 2) // null when upsize is removed
   changedById Int
   reason      String?
   changedAt   DateTime @default(now())
@@ -207,6 +239,8 @@ model InventoryItem {
   unit              Unit
   stockQty          Decimal           @default(0) @db.Decimal(12, 3)
   lowStockThreshold Decimal           @default(0) @db.Decimal(12, 3)
+  packSize          Decimal?          @db.Decimal(12, 3) // qty in unit per pack/pouch/can, e.g. 1000 ML per milk pouch
+  packLabel         String? // e.g. pouch, can, pack, bottle
   unitCost          Decimal?          @db.Decimal(10, 2) // optional, for future profit report
   isActive          Boolean           @default(true)
   createdAt         DateTime          @default(now())

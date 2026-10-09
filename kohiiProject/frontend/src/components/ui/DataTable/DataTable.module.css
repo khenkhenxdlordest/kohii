@@ -1,0 +1,369 @@
+.container {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--latte) transparent;
+}
+
+.table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+}
+
+.table th {
+  height: 46px;
+  padding: 0 18px;
+  background: var(--cream);
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.table td {
+  height: 56px;
+  padding: 0 18px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── Row animation: isa-isang lumalabas mula kaliwa ── */
+.row td {
+  animation: rowReveal 320ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: calc(var(--row-index, 0) * 45ms);
+}
+
+@keyframes rowReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.row:hover td {
+  background: #fdf8f2;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.selected td,
+.selected:hover td {
+  background: var(--cream);
+}
+
+.selected td:first-child {
+  box-shadow: inset 3px 0 0 var(--espresso);
+}
+
+.muted td {
+  color: var(--muted);
+}
+
+.empty {
+  height: 160px !important;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* ── Search highlight ── */
+.matchExact {
+  padding: 1px 2px;
+  border-radius: 4px;
+  background: #f3e1c7;
+  color: var(--espresso);
+  font-weight: 600;
+}
+
+.matchPartial {
+  padding: 0 1px;
+  border-radius: 3px;
+  background: #f6ead0;
+  color: var(--espresso);
+}
+
+/* ── Sticky Action column sa kanan, may anino kapag may naka-scroll sa ilalim ── */
+.actionCell {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  width: 1%;
+  text-align: center !important;
+}
+
+.table th.actionCell {
+  background: var(--cream);
+}
+
+.table td.actionCell {
+  background: var(--surface);
+}
+
+.row:hover td.actionCell {
+  background: #fdf8f2;
+}
+
+.actionCell::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -14px;
+  width: 14px;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(31, 23, 18, 0) 0%, rgba(31, 23, 18, 0.06) 100%);
+}
+
+.actionGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+}
+
+/* Divider sa pagitan ng mga ActionButton */
+.actionGroup > button + button {
+  position: relative;
+}
+
+.actionGroup > button + button::before {
+  content: '';
+  position: absolute;
+  left: -2px;
+  top: 9px;
+  bottom: 9px;
+  width: 1px;
+  background: var(--line);
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  margin: 8px 16px;
+  border-radius: 50%;
+  border: 2px solid var(--latte);
+  border-top-color: var(--espresso);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Footer at pagination ── */
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--line);
+  background: var(--cream);
+}
+
+.summary {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.summary strong {
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pageButton {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.pageButton:hover:not(:disabled) {
+  border-color: var(--espresso);
+}
+
+.pageButton:focus-visible {
+  outline: 2px solid var(--espresso);
+  outline-offset: 1px;
+}
+
+.pageButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pageActive,
+.pageActive:hover:not(:disabled) {
+  border-color: var(--espresso);
+  background: var(--espresso);
+  color: var(--cream);
+}
+
+.ellipsis {
+  padding: 0 4px;
+  color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row td {
+    animation: none;
+  }
+}
+
+/* ── Sortable header ── */
+.sortButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.sortButton:hover {
+  color: var(--espresso);
+}
+
+.sortButton:focus-visible {
+  outline: 2px solid var(--espresso);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.sortButtonRight {
+  flex-direction: row-reverse;
+}
+
+/* Tatlong icon na magkakapatong; ang aktibo lang ang nakikita (fade + scale) */
+.sortIcons {
+  position: relative;
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+}
+
+.sortLayer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transform: scale(0.86);
+  transition: opacity 220ms cubic-bezier(0.22, 1, 0.36, 1), transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sort_none .sortLayerNone {
+  opacity: 0.45;
+  transform: none;
+}
+
+.sort_asc .sortLayerAsc,
+.sort_desc .sortLayerDesc {
+  opacity: 1;
+  transform: none;
+  color: var(--espresso);
+}
+
+/* ── Checkbox ── */
+.checkboxCell {
+  width: 48px;
+  padding: 0 0 0 18px !important;
+}
+
+.checkbox {
+  display: block;
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  border: 1.5px solid var(--muted);
+  border-radius: 5px;
+  background: #fff center / 11px 11px no-repeat;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.checkbox:checked {
+  border-color: var(--espresso);
+  background-color: var(--espresso);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none'%3E%3Cpath d='M3 7.2L5.8 10L11 4' stroke='%23f6efe6' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.checkbox:indeterminate {
+  border-color: var(--espresso);
+  background-color: var(--espresso);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none'%3E%3Cpath d='M3.5 7h7' stroke='%23f6efe6' stroke-width='2.1' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+.checkbox:focus-visible {
+  outline: 2px solid var(--espresso);
+  outline-offset: 2px;
+}
+
+.checkbox:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.checked td,
+.checked:hover td,
+.checked:hover td.actionCell,
+.checked td.actionCell {
+  background: #f8eee2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sortLayer {
+    transition: none;
+  }
+}
