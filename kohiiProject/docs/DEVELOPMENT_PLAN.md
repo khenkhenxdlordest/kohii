@@ -18,6 +18,7 @@
 | Bago mag-commit | Dapat pumasa ang `npm run build` sa backend at frontend |
 | **Bawal ang emoji sa UI** | Lahat ng icon ay **SVG** na nakalagay sa `frontend/src/assets/icons/`. Walang emoji sa pages, buttons, labels o messages |
 | Images at logo sa `assets/` | Ang mga larawan ay nasa `assets/images/`, at ang logo ay nasa `assets/logo/` (SVG hangga't maaari). Bawal ang direktang link sa larawang nasa labas ng project |
+| **Bawat `.tsx` ay may sariling `.module.css`** | Bawat page at component ay may kapares na CSS module na kapangalan nito, hal. `LoginPage.tsx` + `login.module.css`, `StatCard.tsx` + `statCard.module.css`. **Bawal ang shared CSS** sa pagitan ng mga page (hal. iisang `dashboard.module.css` para sa tatlong dashboard). Ang global lang ay ang color tokens sa `index.css` |
 | Hiwalay na dashboard bawat role | May sariling dashboard, layout at routes ang Admin (owner), Clerk at Cashier. Hindi sila naghahati sa iisang dashboard page |
 
 **Default accounts (seed):** `admin`, `clerk`, `cashier.b1`, `cashier.b2`. Password: `kohii123`

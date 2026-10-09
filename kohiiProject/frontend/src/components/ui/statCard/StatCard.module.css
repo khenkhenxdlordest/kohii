@@ -1,0 +1,97 @@
+.card {
+  --tone: var(--espresso);
+  --tone-soft: var(--latte);
+
+  position: relative;
+  display: flex;
+  gap: 12px;
+  padding: 18px 18px 18px 22px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+/* Kulay ng bawat uri ng card, mga mahinang tono na bagay sa espresso/cream */
+.sales { --tone: #1f1712; --tone-soft: #ece2d6; }
+.orders { --tone: #8a5a3c; --tone-soft: #f3e4d8; }
+.products { --tone: #5b6b3a; --tone-soft: #e8ecd9; }
+.stockIn { --tone: #3f6b5c; --tone-soft: #dcebe5; }
+.lowStock { --tone: #b07a1a; --tone-soft: #f6ead0; }
+.outOfStock { --tone: #9b2c2c; --tone-soft: #f6dddb; }
+
+.accent {
+  position: absolute;
+  inset: 14px auto 14px 0;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: var(--tone);
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.value {
+  margin: 6px 0 4px;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.caption {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.iconChip {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--tone-soft);
+  color: var(--tone);
+}
+
+.trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--cream);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.up {
+  background: #dcebe5;
+  color: #2f6b4f;
+}
+
+.down {
+  background: #f6dddb;
+  color: #9b2c2c;
+}

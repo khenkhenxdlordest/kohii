@@ -8,4 +8,5 @@ export interface AuthUser {
   storeId: number | null;
   mustChangePassword: boolean;
   profile: { firstName: string; lastName: string } | null;
+  store: { code: string; name: string } | null;
 }

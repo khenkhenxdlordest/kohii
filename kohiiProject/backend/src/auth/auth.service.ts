@@ -11,6 +11,7 @@ const userSelect = {
   storeId: true,
   mustChangePassword: true,
   profile: { select: { firstName: true, lastName: true } },
+  store: { select: { code: true, name: true } },
 } as const;
 
 @Injectable()
