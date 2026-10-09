@@ -1,11 +1,21 @@
+export class PackDto {
+  /** May id = i-update; walang id = bago */
+  id?: number;
+  /** Pack, Bottle, Sack, Can */
+  label!: string;
+  /** Dami sa unit ng item, hal. 1000 para sa 1000 ML */
+  size!: number;
+  isDefault?: boolean;
+}
+
 export class CreateInventoryItemDto {
   name!: string;
   type!: string;
   unit!: string;
   lowStockThreshold?: number;
-  packSize?: number;
-  packLabel?: string;
   unitCost?: number;
+  /** Mga lalagyan, hal. Oil: Pack (1000) at Bottle (500) */
+  packs?: PackDto[];
   /** Panimulang stock; itatala bilang STOCK_IN movement */
   initialQty?: number;
 }
@@ -14,22 +24,29 @@ export class UpdateInventoryItemDto {
   name?: string;
   type?: string;
   lowStockThreshold?: number;
-  packSize?: number | null;
-  packLabel?: string | null;
   unitCost?: number | null;
   isActive?: boolean;
+  /** Buong listahan ng lalagyan; ang wala rito ay ide-deactivate */
+  packs?: PackDto[];
 }
 
 /**
- * Para sa stock in (+) at withdraw (-).
- * Ibigay ang `packs` (hal. 2 pouch) kung may packSize ang item, o `qty` sa mismong unit (hal. 500 ML).
+ * Para sa stock in, withdraw at waste.
+ * Ibigay ang `packId` + `packCount` (hal. 2 bote), o `qty` sa mismong unit (hal. 500 ML).
  */
 export class AdjustStockDto {
+  packId?: number;
+  packCount?: number;
   qty?: number;
-  packs?: number;
   note?: string;
-  /** Para sa stock in lang */
+  /** Stock in: SUPPLIER o EMERGENCY */
+  source?: string;
+  /** Stock in: supplier, o tindahan para sa emergency purchase */
   supplier?: string;
-  /** Para sa admin/clerk na walang sariling store; kung saang branch napunta ang kinuha */
+  /** Stock in: halagang ibinayad */
+  totalCost?: number;
+  /** Waste: SPOILED | EXPIRED | SPILLED | DAMAGED | OTHER */
+  cause?: string;
+  /** Para sa admin/clerk na walang sariling store */
   storeId?: number;
 }

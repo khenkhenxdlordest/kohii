@@ -6,7 +6,7 @@ import styles from './PriceChangeModal.module.css';
 import { changeProductPrice, getProduct } from '../../../../../api/products.api';
 import type { PriceHistoryEntry, Product, ProductSize } from '../../../../../types';
 import { formatDateTime, formatPeso } from '../../../../../utils/format';
-import { allowsUpsize } from '../../../../../utils/categoryGroups';
+import { priceOf, sizeLabels, sizeOunces, sizesFor } from '../../../../../utils/productSizes';
 
 interface PriceChangeModalProps {
   product: Product;
@@ -14,23 +14,24 @@ interface PriceChangeModalProps {
   onSaved: (product: Product) => void;
 }
 
-const sizeLabels: Record<ProductSize, string> = { REGULAR: 'Regular', UPSIZE: 'Upsize' };
-
-const currentPriceOf = (product: Product, size: ProductSize) =>
-  size === 'REGULAR' ? product.currentPrice : product.upsizePrice;
-
 // Ginagamit lang sa ProductsPage. Bawat pagpapalit ay may ProductPriceHistory at AuditLog sa backend.
 function PriceChangeModal({ product, onClose, onSaved }: PriceChangeModalProps) {
-  const [size, setSize] = useState<ProductSize>('REGULAR');
-  const [price, setPrice] = useState(String(product.currentPrice));
+  const sizes = sizesFor(product.category.group);
+  const isDrink = product.category.group === 'DRINKS';
+  // Unang bukas: ang unang size na may presyo
+  const firstSize = sizes.find((s) => priceOf(product, s) !== null) ?? sizes[0];
+
+  const [size, setSize] = useState<ProductSize>(firstSize);
+  const [price, setPrice] = useState(String(priceOf(product, firstSize) ?? ''));
   const [reason, setReason] = useState('');
   const [history, setHistory] = useState<PriceHistoryEntry[] | null>(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState<'save' | 'remove' | null>(null);
 
-  const current = currentPriceOf(product, size);
-  // Drinks lang ang may upsize; ipinapakita pa rin kung may lumang upsize para matanggal
-  const showSizes = allowsUpsize(product.category.group) || product.upsizePrice !== null;
+  const current = priceOf(product, size);
+  // Drinks: puwedeng tanggalin ang isang size basta may matitirang Hot o Iced
+  const remaining = product.prices.filter((p) => p.size !== size);
+  const canRemove = isDrink && current !== null && remaining.some((p) => p.size === 'HOT' || p.size === 'ICED');
 
   useEffect(() => {
     let ignore = false;
@@ -49,7 +50,7 @@ function PriceChangeModal({ product, onClose, onSaved }: PriceChangeModalProps) 
   const selectSize = (next: ProductSize) => {
     setSize(next);
     setError('');
-    setPrice(String(currentPriceOf(product, next) ?? ''));
+    setPrice(String(priceOf(product, next) ?? ''));
   };
 
   const submit = async (newPrice: number | null) => {
@@ -74,10 +75,10 @@ function PriceChangeModal({ product, onClose, onSaved }: PriceChangeModalProps) 
       title="Change price"
       description={product.name}
       onClose={onClose}
-      width={540}
+      width={560}
       footer={
         <>
-          {size === 'UPSIZE' && product.upsizePrice !== null && (
+          {canRemove && (
             <Button
               variant="danger"
               className={styles.removeButton}
@@ -85,14 +86,14 @@ function PriceChangeModal({ product, onClose, onSaved }: PriceChangeModalProps) 
               loading={saving === 'remove'}
               disabled={saving !== null}
             >
-              Remove upsize
+              Remove {sizeLabels[size]}
             </Button>
           )}
           <Button variant="secondary" onClick={onClose} disabled={saving !== null}>
             Cancel
           </Button>
           <Button type="submit" form="price-form" loading={saving === 'save'} disabled={saving !== null}>
-            {size === 'UPSIZE' && product.upsizePrice === null ? 'Add upsize' : 'Save new price'}
+            {current === null ? `Add ${sizeLabels[size]}` : 'Save new price'}
           </Button>
         </>
       }
@@ -104,42 +105,45 @@ function PriceChangeModal({ product, onClose, onSaved }: PriceChangeModalProps) 
           </p>
         )}
 
-        {showSizes && (
+        {isDrink && (
           <div className={styles.sizeTabs} role="tablist" aria-label="Size">
-            {(['REGULAR', 'UPSIZE'] as ProductSize[]).map((value) => (
-              <button
-                key={value}
-                type="button"
-                role="tab"
-                aria-selected={size === value}
-                className={`${styles.sizeTab} ${size === value ? styles.sizeTabActive : ''}`}
-                onClick={() => selectSize(value)}
-              >
-                <span className={styles.sizeName}>{sizeLabels[value]}</span>
-                <span className={styles.sizePrice}>
-                  {currentPriceOf(product, value) === null
-                    ? 'Not offered'
-                    : formatPeso(currentPriceOf(product, value)!)}
-                </span>
-              </button>
-            ))}
+            {sizes.map((value) => {
+              const valuePrice = priceOf(product, value);
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  role="tab"
+                  aria-selected={size === value}
+                  className={`${styles.sizeTab} ${size === value ? styles.sizeTabActive : ''}`}
+                  onClick={() => selectSize(value)}
+                >
+                  <span className={styles.sizeName}>
+                    {sizeLabels[value]} {sizeOunces[value]}
+                  </span>
+                  <span className={valuePrice === null ? styles.sizeNone : styles.sizePrice}>
+                    {valuePrice === null ? 'Not offered' : formatPeso(valuePrice)}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         )}
 
         <div className={styles.field}>
           <label className={styles.label} htmlFor="new-price">
             {current === null
-              ? 'Upsize price (PHP)'
-              : showSizes
+              ? `${sizeLabels[size]} price (PHP)`
+              : isDrink
                 ? `New ${sizeLabels[size].toLowerCase()} price (PHP)`
-                : `New price (PHP), now ${formatPeso(product.currentPrice)}`}
+                : `New price (PHP), now ${formatPeso(current)}`}
           </label>
           <input
             id="new-price"
             className={styles.input}
             type="number"
             inputMode="decimal"
-            min={size === 'UPSIZE' ? product.currentPrice : '0.01'}
+            min="0.01"
             step="0.01"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
@@ -147,7 +151,6 @@ function PriceChangeModal({ product, onClose, onSaved }: PriceChangeModalProps) 
             autoFocus
             required
           />
-          {size === 'UPSIZE' && <p className={styles.hint}>Can be the same as or higher than the regular price.</p>}
         </div>
 
         <div className={styles.field}>
@@ -176,7 +179,7 @@ function PriceChangeModal({ product, onClose, onSaved }: PriceChangeModalProps) 
             {history.map((entry) => (
               <li key={entry.id} className={styles.historyItem}>
                 <div>
-                  <span className={`${styles.sizeBadge} ${entry.size === 'UPSIZE' ? styles.sizeBadgeUpsize : ''}`}>
+                  <span className={`${styles.sizeBadge} ${styles[`size_${entry.size}`] ?? ''}`}>
                     {sizeLabels[entry.size]}
                   </span>
                   <span className={styles.historyPrice}>

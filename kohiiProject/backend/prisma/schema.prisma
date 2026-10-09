@@ -37,8 +37,11 @@ enum ProductType {
   READY_MADE // resold snack; recipe = 1 pc of its own InventoryItem
 }
 
+// REGULAR = single price (snacks, rice meals). Drinks: HOT (12oz), ICED (16oz), UPSIZE (22oz).
 enum ProductSize {
   REGULAR
+  HOT
+  ICED
   UPSIZE
 }
 
@@ -98,6 +101,19 @@ enum StockMovementType {
   WITHDRAW // barista takes a pack/pouch out of storage for use
 }
 
+enum StockInSource {
+  SUPPLIER
+  EMERGENCY // bought outside, e.g. sari-sari store when oil runs out
+}
+
+enum WasteCause {
+  SPOILED // e.g. not refrigerated
+  EXPIRED
+  SPILLED
+  DAMAGED
+  OTHER
+}
+
 // ──────────────────── Stores & Users ────────────────────
 
 model Store {
@@ -132,18 +148,18 @@ model Store {
 
 // ── AUTH ── credentials + access only. NO personal info here.
 model User {
-  id                 Int       @id @default(autoincrement())
-  username           String?   @unique // null = employee with no login (barista, kitchen)
+  id                 Int            @id @default(autoincrement())
+  username           String?        @unique // null = employee with no login (barista, kitchen)
   passwordHash       String? // null = no login. Plain text while PASSWORD_HASHING=false (dev), bcrypt for final
   role               Role? // login access: ADMIN, CLERK, CASHIER. null = no login (barista, kitchen)
   storeId            Int? // null for ADMIN (sees both stores)
   position           StaffPosition? // store staff only: cashier, barista or kitchen
   shift              StaffShift? // AM or PM, store staff only
-  isActive           Boolean   @default(true)
-  mustChangePassword Boolean   @default(true)
+  isActive           Boolean        @default(true)
+  mustChangePassword Boolean        @default(true)
   lastLoginAt        DateTime?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
 
   store   Store?       @relation(fields: [storeId], references: [id])
   profile UserProfile?
@@ -183,29 +199,28 @@ model UserProfile {
 // ─────────────────────── Catalog ───────────────────────
 
 model Category {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
+  id        Int           @id @default(autoincrement())
+  name      String        @unique
   group     CategoryGroup @default(DRINKS)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isActive  Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   products Product[]
 }
 
 model Product {
-  id           Int         @id @default(autoincrement())
-  name         String      @unique
-  categoryId   Int
-  type         ProductType
-  currentPrice Decimal     @db.Decimal(10, 2) // set by ADMIN only
-  upsizePrice  Decimal?    @db.Decimal(10, 2) // null = no upsize (snacks, meals); price varies per drink
-  imageUrl     String?
-  isActive     Boolean     @default(true)
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id         Int         @id @default(autoincrement())
+  name       String      @unique
+  categoryId Int
+  type       ProductType
+  imageUrl   String?
+  isActive   Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 
   category     Category              @relation(fields: [categoryId], references: [id])
+  prices       ProductPrice[]
   recipeItems  RecipeItem[]
   priceHistory ProductPriceHistory[]
   orderItems   OrderItem[]
@@ -213,15 +228,28 @@ model Product {
   @@index([categoryId])
 }
 
+// One row per size the product is sold in. Set by ADMIN only; every change goes to ProductPriceHistory.
+model ProductPrice {
+  id        Int         @id @default(autoincrement())
+  productId Int
+  size      ProductSize
+  price     Decimal     @db.Decimal(10, 2)
+  updatedAt DateTime    @default(now()) @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, size])
+}
+
 model ProductPriceHistory {
-  id          Int      @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   productId   Int
   size        ProductSize @default(REGULAR)
-  oldPrice    Decimal? @db.Decimal(10, 2) // null on first price (or when upsize is first added)
-  newPrice    Decimal? @db.Decimal(10, 2) // null when upsize is removed
+  oldPrice    Decimal?    @db.Decimal(10, 2) // null on first price (or when upsize is first added)
+  newPrice    Decimal?    @db.Decimal(10, 2) // null when upsize is removed
   changedById Int
   reason      String?
-  changedAt   DateTime @default(now())
+  changedAt   DateTime    @default(now())
 
   product   Product @relation(fields: [productId], references: [id])
   changedBy User    @relation(fields: [changedById], references: [id])
@@ -239,13 +267,12 @@ model InventoryItem {
   unit              Unit
   stockQty          Decimal           @default(0) @db.Decimal(12, 3)
   lowStockThreshold Decimal           @default(0) @db.Decimal(12, 3)
-  packSize          Decimal?          @db.Decimal(12, 3) // qty in unit per pack/pouch/can, e.g. 1000 ML per milk pouch
-  packLabel         String? // e.g. pouch, can, pack, bottle
   unitCost          Decimal?          @db.Decimal(10, 2) // optional, for future profit report
   isActive          Boolean           @default(true)
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
 
+  packs           InventoryPack[]
   recipeItems     RecipeItem[]
   stockInItems    StockInItem[]
   stockAuditItems StockAuditItem[]
@@ -253,6 +280,23 @@ model InventoryItem {
   stockMovements  StockMovement[]
 
   @@index([type])
+}
+
+// Containers an item is bought or taken in, e.g. Oil: Pack (1000 ML) and Bottle (500 ML).
+// Stock stays in the item's unit; a pack is only a shortcut for entering quantities.
+model InventoryPack {
+  id              Int      @id @default(autoincrement())
+  inventoryItemId Int
+  label           String // Pack, Bottle, Sack, Can
+  size            Decimal  @db.Decimal(12, 3) // qty in the item's unit
+  isDefault       Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  stockInItems  StockInItem[]
+
+  @@unique([inventoryItemId, label])
 }
 
 model RecipeItem {
@@ -323,13 +367,14 @@ model Order {
 }
 
 model OrderItem {
-  id          Int     @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   orderId     Int
   productId   Int
   productName String // snapshot
+  size        ProductSize @default(REGULAR)
   qty         Int
-  unitPrice   Decimal @db.Decimal(10, 2) // price at time of sale
-  lineTotal   Decimal @db.Decimal(10, 2)
+  unitPrice   Decimal     @db.Decimal(10, 2) // price at time of sale
+  lineTotal   Decimal     @db.Decimal(10, 2)
 
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])
@@ -340,12 +385,14 @@ model OrderItem {
 // ─────────────────── Stock operations ───────────────────
 
 model StockIn {
-  id         Int      @id @default(autoincrement())
+  id         Int           @id @default(autoincrement())
   clerkId    Int
-  supplier   String?
+  supplier   String? // supplier name, or the store for emergency purchases
+  source     StockInSource @default(SUPPLIER)
+  totalCost  Decimal?      @db.Decimal(10, 2) // amount paid; used for the emergency expense summary
   note       String?
-  receivedAt DateTime @default(now())
-  createdAt  DateTime @default(now())
+  receivedAt DateTime      @default(now())
+  createdAt  DateTime      @default(now())
 
   clerk          User            @relation(fields: [clerkId], references: [id])
   items          StockInItem[]
@@ -360,9 +407,12 @@ model StockInItem {
   inventoryItemId Int
   qty             Decimal  @db.Decimal(12, 3)
   unitCost        Decimal? @db.Decimal(10, 2)
+  packId          Int?
+  packCount       Decimal? @db.Decimal(12, 3)
 
-  stockIn       StockIn       @relation(fields: [stockInId], references: [id], onDelete: Cascade)
-  inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id])
+  stockIn       StockIn        @relation(fields: [stockInId], references: [id], onDelete: Cascade)
+  pack          InventoryPack? @relation(fields: [packId], references: [id])
+  inventoryItem InventoryItem  @relation(fields: [inventoryItemId], references: [id])
 }
 
 model StockAudit {
@@ -398,12 +448,13 @@ model StockAuditItem {
 }
 
 model WasteLog {
-  id              Int      @id @default(autoincrement())
+  id              Int        @id @default(autoincrement())
   inventoryItemId Int
-  qty             Decimal  @db.Decimal(12, 3)
-  reason          String
+  qty             Decimal    @db.Decimal(12, 3)
+  cause           WasteCause @default(OTHER)
+  reason          String? // extra note
   loggedById      Int
-  createdAt       DateTime @default(now())
+  createdAt       DateTime   @default(now())
 
   inventoryItem  InventoryItem   @relation(fields: [inventoryItemId], references: [id])
   loggedBy       User            @relation(fields: [loggedById], references: [id])

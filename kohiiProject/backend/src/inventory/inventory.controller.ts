@@ -1,12 +1,12 @@
 import { BadRequestException, Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
-import { InventoryService } from './inventory.service.js';
+import { InventoryService, type PackInput } from './inventory.service.js';
 import { AdjustStockDto, CreateInventoryItemDto, UpdateInventoryItemDto } from './dto/adjust-stock.dto.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
 import type { AuthRequest } from '../auth/jwt-payload.js';
 import { Role } from '../common/enums/role.enum.js';
-import { InventoryItemType, StockMovementType, Unit } from '../generated/prisma/client.js';
+import { InventoryItemType, StockInSource, StockMovementType, Unit, WasteCause } from '../generated/prisma/client.js';
 import {
   optionalBoolean,
   optionalQty,
@@ -20,10 +20,24 @@ import {
 const itemTypes = Object.values(InventoryItemType);
 const units = Object.values(Unit);
 const movementTypes = Object.values(StockMovementType);
+const sources = Object.values(StockInSource);
+const causes = Object.values(WasteCause);
 
 /** null sa body = burahin ang value; undefined = huwag galawin */
 const nullable = <T>(value: unknown, parse: (v: unknown) => T | undefined): T | null | undefined =>
-  value === null ? null : parse(value);
+  value === undefined ? undefined : value === null ? null : parse(value);
+
+function parsePacks(value: unknown): PackInput[] {
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value)) throw new BadRequestException('Containers must be a list.');
+  if (value.length > 10) throw new BadRequestException('Too many containers.');
+  return value.map((p: Record<string, unknown>) => ({
+    id: p?.id === undefined || p?.id === null ? undefined : requireId(p.id, 'Container'),
+    label: requireString(p?.label, 'Container name', 30),
+    size: requireQty(p?.size, 'Container size'),
+    isDefault: p?.isDefault === true,
+  }));
+}
 
 @Controller('inventory')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -53,6 +67,16 @@ export class InventoryController {
     return this.inventoryService.findItems({ lowStockOnly: true, includeInactive: false });
   }
 
+  // GET /api/inventory/emergency-summary?since=2026-10-01  (placeholder para sa expenses)
+  @Get('emergency-summary')
+  @Roles(Role.ADMIN, Role.CLERK)
+  emergencySummary(@Query('since') since?: string) {
+    const now = new Date();
+    const date = since ? new Date(since) : new Date(now.getFullYear(), now.getMonth(), 1);
+    if (Number.isNaN(date.getTime())) throw new BadRequestException('Invalid date.');
+    return this.inventoryService.emergencySummary(date);
+  }
+
   // GET /api/inventory/items/:id
   @Get('items/:id')
   findItem(@Param('id') id: string) {
@@ -69,21 +93,20 @@ export class InventoryController {
         type: requireEnum(body?.type, itemTypes, 'Type'),
         unit: requireEnum(body?.unit, units, 'Unit'),
         lowStockThreshold: optionalQty(body?.lowStockThreshold, 'Low stock level', true) ?? 0,
-        packSize: optionalQty(body?.packSize, 'Pack size'),
-        packLabel: optionalString(body?.packLabel, 'Pack label', 30),
         unitCost: optionalQty(body?.unitCost, 'Unit cost', true),
+        packs: parsePacks(body?.packs),
         initialQty: optionalQty(body?.initialQty, 'Initial stock', true),
       },
       req.user.sub,
     );
   }
 
-  // PATCH /api/inventory/items/:id (hindi kasama ang stock; gamitin ang stock-in / withdraw)
+  // PATCH /api/inventory/items/:id (hindi kasama ang stock; gamitin ang stock-in / withdraw / waste)
   @Patch('items/:id')
   @Roles(Role.ADMIN, Role.CLERK)
   updateItem(@Param('id') id: string, @Body() body: UpdateInventoryItemDto, @Req() req: AuthRequest) {
     if (body && 'stockQty' in body) {
-      throw new BadRequestException('Stock cannot be edited directly. Use stock in or withdraw.');
+      throw new BadRequestException('Stock cannot be edited directly. Use stock in, withdraw or waste.');
     }
     return this.inventoryService.updateItem(
       requireId(id, 'Item'),
@@ -91,28 +114,53 @@ export class InventoryController {
         name: optionalString(body?.name, 'Name', 80),
         type: body?.type === undefined ? undefined : requireEnum(body.type, itemTypes, 'Type'),
         lowStockThreshold: optionalQty(body?.lowStockThreshold, 'Low stock level', true),
-        packSize: nullable(body?.packSize, (v) => optionalQty(v, 'Pack size')),
-        packLabel: nullable(body?.packLabel, (v) => optionalString(v, 'Pack label', 30)),
         unitCost: nullable(body?.unitCost, (v) => optionalQty(v, 'Unit cost', true)),
         isActive: optionalBoolean(body?.isActive, 'Status'),
+        packs: body?.packs === undefined ? undefined : parsePacks(body.packs),
       },
       req.user.sub,
     );
   }
 
-  // POST /api/inventory/items/:id/stock-in  { packs: 2 } o { qty: 500 }  → increment
+  // POST /api/inventory/items/:id/stock-in
+  // { packId, packCount } o { qty }, at { source: 'SUPPLIER' | 'EMERGENCY', supplier, totalCost }
   @Post('items/:id/stock-in')
   @Roles(Role.ADMIN, Role.CLERK)
   stockIn(@Param('id') id: string, @Body() body: AdjustStockDto, @Req() req: AuthRequest) {
-    return this.inventoryService.stockIn(requireId(id, 'Item'), this.parseAdjust(body, req), req.user.sub);
+    return this.inventoryService.stockIn(
+      requireId(id, 'Item'),
+      {
+        ...this.parseQuantity(body),
+        source: body?.source ? requireEnum(body.source, sources, 'Source') : StockInSource.SUPPLIER,
+        supplier: optionalString(body?.supplier, 'Supplier', 80),
+        totalCost: optionalQty(body?.totalCost, 'Amount paid', true),
+        storeId: this.storeOf(body, req),
+      },
+      req.user.sub,
+    );
   }
 
-  // POST /api/inventory/items/:id/withdraw  { packs: 1 } o { qty: 1000 }  → decrement
-  // TODO: kumpirmahin sa store kung sino ang kumukuha (barista/cashier, clerk, o pareho)
+  // POST /api/inventory/items/:id/withdraw  { packId, packCount } o { qty }
+  // Cashier, clerk at owner lang ang may login; sila ang nagtatala ng kinuha ng barista/kitchen
   @Post('items/:id/withdraw')
   @Roles(Role.ADMIN, Role.CLERK, Role.CASHIER)
   withdraw(@Param('id') id: string, @Body() body: AdjustStockDto, @Req() req: AuthRequest) {
-    return this.inventoryService.withdraw(requireId(id, 'Item'), this.parseAdjust(body, req), req.user.sub);
+    return this.inventoryService.withdraw(
+      requireId(id, 'Item'),
+      { ...this.parseQuantity(body), storeId: this.storeOf(body, req) },
+      req.user.sub,
+    );
+  }
+
+  // POST /api/inventory/items/:id/waste  { packId, packCount } o { qty }, at { cause, note }
+  @Post('items/:id/waste')
+  @Roles(Role.ADMIN, Role.CLERK)
+  waste(@Param('id') id: string, @Body() body: AdjustStockDto, @Req() req: AuthRequest) {
+    return this.inventoryService.waste(
+      requireId(id, 'Item'),
+      { ...this.parseQuantity(body), cause: body?.cause ? requireEnum(body.cause, causes, 'Reason') : WasteCause.OTHER },
+      req.user.sub,
+    );
   }
 
   // GET /api/inventory/movements?itemId=1&type=WITHDRAW&storeId=1&limit=50
@@ -132,16 +180,18 @@ export class InventoryController {
     });
   }
 
-  private parseAdjust(body: AdjustStockDto, req: AuthRequest) {
-    const packs = optionalQty(body?.packs, 'Packs');
-    const qty = packs === undefined ? requireQty(body?.qty) : undefined;
+  private parseQuantity(body: AdjustStockDto) {
+    const packId = body?.packId === undefined || body.packId === null ? undefined : requireId(body.packId, 'Container');
     return {
-      packs,
-      qty,
+      packId,
+      packCount: packId === undefined ? undefined : requireQty(body?.packCount, 'How many'),
+      qty: packId === undefined ? requireQty(body?.qty) : undefined,
       note: optionalString(body?.note, 'Note', 200),
-      supplier: optionalString(body?.supplier, 'Supplier', 80),
-      // Ang cashier ay laging sa sariling store; ang admin/clerk ay puwedeng pumili
-      storeId: req.user.storeId ?? (body?.storeId ? requireId(body.storeId, 'Store') : null),
     };
+  }
+
+  // Ang cashier ay laging sa sariling store; ang admin/clerk ay puwedeng pumili
+  private storeOf(body: AdjustStockDto, req: AuthRequest) {
+    return req.user.storeId ?? (body?.storeId ? requireId(body.storeId, 'Store') : null);
   }
 }

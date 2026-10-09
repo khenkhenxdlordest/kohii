@@ -7,6 +7,7 @@ import {
   PrismaClient,
   CategoryGroup,
   InventoryItemType,
+  ProductSize,
   ProductType,
   Role,
   StaffPosition,
@@ -64,7 +65,9 @@ async function main() {
   // Drinks lang ang puwedeng may upsize
   const categoryGroups: Record<string, CategoryGroup> = {
     Coffee: CategoryGroup.DRINKS,
+    'Special Drinks': CategoryGroup.DRINKS,
     'Non-Coffee': CategoryGroup.DRINKS,
+    'Hojicha & Matcha': CategoryGroup.DRINKS,
     'Rice Meals': CategoryGroup.RICE_MEALS,
     Snacks: CategoryGroup.SNACKS,
   };
@@ -74,97 +77,165 @@ async function main() {
     categories[name] = c.id;
   }
 
-  // ── Inventory items (one pooled stock) ──
-  // packSize/packLabel: sample lang; kumpirmahin sa store (docs/STORE_QUESTIONS.md)
+  // ── Inventory items (iisang stock para sa Alley at Podium) ──
+  // Mula sa interview noong 10/09/2026 (docs/october92026). Ang may "kumpirmahin" ay hindi pa alam ang eksaktong laki.
+  type SeedPack = { label: string; size: number };
   const items: {
     name: string;
     type: InventoryItemType;
     unit: Unit;
     stockQty: number;
     lowStockThreshold: number;
-    packSize?: number;
-    packLabel?: string;
+    packs?: SeedPack[];
   }[] = [
-    { name: 'Espresso Beans', type: InventoryItemType.RAW_MATERIAL, unit: Unit.G, stockQty: 5000, lowStockThreshold: 1000, packSize: 1000, packLabel: 'bag' },
-    { name: 'Fresh Milk', type: InventoryItemType.RAW_MATERIAL, unit: Unit.ML, stockQty: 10000, lowStockThreshold: 2000, packSize: 1000, packLabel: 'pouch' },
-    { name: 'Matcha Powder', type: InventoryItemType.RAW_MATERIAL, unit: Unit.G, stockQty: 1000, lowStockThreshold: 200, packSize: 500, packLabel: 'pouch' },
-    { name: 'Chocolate Syrup', type: InventoryItemType.RAW_MATERIAL, unit: Unit.ML, stockQty: 2000, lowStockThreshold: 400, packSize: 1000, packLabel: 'bottle' },
-    { name: 'Caramel Syrup', type: InventoryItemType.RAW_MATERIAL, unit: Unit.ML, stockQty: 2000, lowStockThreshold: 400, packSize: 1000, packLabel: 'bottle' },
-    { name: 'Sugar Syrup', type: InventoryItemType.RAW_MATERIAL, unit: Unit.ML, stockQty: 3000, lowStockThreshold: 500, packSize: 1000, packLabel: 'bottle' },
-    { name: '16oz Cup', type: InventoryItemType.PACKAGING, unit: Unit.PCS, stockQty: 500, lowStockThreshold: 100 },
-    { name: 'Flat Lid', type: InventoryItemType.PACKAGING, unit: Unit.PCS, stockQty: 500, lowStockThreshold: 100 },
-    { name: 'Straw', type: InventoryItemType.PACKAGING, unit: Unit.PCS, stockQty: 1000, lowStockThreshold: 200 },
+    // Coffee bar
+    { name: 'Espresso Beans', type: InventoryItemType.RAW_MATERIAL, unit: Unit.G, stockQty: 5000, lowStockThreshold: 1000, packs: [{ label: 'Pack', size: 1000 }] },
+    { name: 'Fresh Milk', type: InventoryItemType.RAW_MATERIAL, unit: Unit.ML, stockQty: 10000, lowStockThreshold: 2000, packs: [{ label: 'Pack', size: 1000 }] }, // farm fresh; kumpirmahin ang laki
+    { name: 'Condensed Milk', type: InventoryItemType.RAW_MATERIAL, unit: Unit.G, stockQty: 3600, lowStockThreshold: 1200, packs: [{ label: 'Pack', size: 1200 }] },
+    { name: 'Matcha Powder', type: InventoryItemType.RAW_MATERIAL, unit: Unit.G, stockQty: 1000, lowStockThreshold: 200, packs: [{ label: 'Pack', size: 200 }] },
+    { name: 'Chocolate Lava', type: InventoryItemType.RAW_MATERIAL, unit: Unit.G, stockQty: 1500, lowStockThreshold: 500, packs: [{ label: 'Pack', size: 500 }] },
+    { name: 'Chocolate Syrup', type: InventoryItemType.RAW_MATERIAL, unit: Unit.ML, stockQty: 2000, lowStockThreshold: 1000, packs: [{ label: 'Bottle', size: 1000 }] },
+    { name: 'Caramel Syrup', type: InventoryItemType.RAW_MATERIAL, unit: Unit.ML, stockQty: 2000, lowStockThreshold: 1000, packs: [{ label: 'Bottle', size: 1000 }] },
+    { name: 'Sugar Syrup', type: InventoryItemType.RAW_MATERIAL, unit: Unit.ML, stockQty: 3000, lowStockThreshold: 1000, packs: [{ label: 'Bottle', size: 1000 }] },
+    // Packaging: 12oz (hot), 16oz (iced), 22oz
+    { name: '12oz Hot Cup', type: InventoryItemType.PACKAGING, unit: Unit.PCS, stockQty: 200, lowStockThreshold: 50, packs: [{ label: 'Pack', size: 50 }] }, // kumpirmahin ilan bawat balot
+    { name: '16oz Cup', type: InventoryItemType.PACKAGING, unit: Unit.PCS, stockQty: 500, lowStockThreshold: 100, packs: [{ label: 'Pack', size: 50 }] },
+    { name: '22oz Cup', type: InventoryItemType.PACKAGING, unit: Unit.PCS, stockQty: 200, lowStockThreshold: 50, packs: [{ label: 'Pack', size: 50 }] },
+    { name: '12oz Hot Lid', type: InventoryItemType.PACKAGING, unit: Unit.PCS, stockQty: 200, lowStockThreshold: 50, packs: [{ label: 'Pack', size: 50 }] },
+    { name: 'Flat Lid', type: InventoryItemType.PACKAGING, unit: Unit.PCS, stockQty: 500, lowStockThreshold: 100, packs: [{ label: 'Pack', size: 50 }] }, // 16oz
+    { name: '22oz Lid', type: InventoryItemType.PACKAGING, unit: Unit.PCS, stockQty: 200, lowStockThreshold: 50, packs: [{ label: 'Pack', size: 50 }] },
+    { name: 'Straw', type: InventoryItemType.PACKAGING, unit: Unit.PCS, stockQty: 1000, lowStockThreshold: 200, packs: [{ label: 'Plastic', size: 100 }] },
+    { name: 'Tissue', type: InventoryItemType.PACKAGING, unit: Unit.PCS, stockQty: 600, lowStockThreshold: 150, packs: [{ label: 'Pack', size: 150 }] }, // pulls
+    // Kitchen (Alley)
+    { name: 'Rice', type: InventoryItemType.MEAL, unit: Unit.G, stockQty: 10000, lowStockThreshold: 3000, packs: [{ label: 'Sack', size: 25000 }, { label: 'Kilo', size: 1000 }] }, // tantya; puwedeng per sako o per kilo
+    { name: 'Cooking Oil', type: InventoryItemType.MEAL, unit: Unit.ML, stockQty: 2000, lowStockThreshold: 500, packs: [{ label: 'Pack', size: 1000 }, { label: 'Bottle', size: 500 }] }, // kumpirmahin ang laki
+    { name: 'Ketchup', type: InventoryItemType.MEAL, unit: Unit.PCS, stockQty: 6, lowStockThreshold: 2, packs: [{ label: 'Pack', size: 1 }] },
+    { name: 'Mayonnaise', type: InventoryItemType.MEAL, unit: Unit.PCS, stockQty: 6, lowStockThreshold: 2, packs: [{ label: 'Pack', size: 1 }] },
+    { name: 'Eggs', type: InventoryItemType.MEAL, unit: Unit.PCS, stockQty: 60, lowStockThreshold: 15, packs: [{ label: 'Tray', size: 30 }] },
+    { name: 'Hotdog', type: InventoryItemType.MEAL, unit: Unit.PCS, stockQty: 40, lowStockThreshold: 10, packs: [{ label: 'Pack', size: 10 }] },
+    { name: 'Corned Beef', type: InventoryItemType.MEAL, unit: Unit.PCS, stockQty: 12, lowStockThreshold: 4, packs: [{ label: 'Can', size: 1 }] },
+    { name: 'Spam', type: InventoryItemType.MEAL, unit: Unit.PCS, stockQty: 12, lowStockThreshold: 4, packs: [{ label: 'Can', size: 1 }] },
+    { name: 'Frozen Fries', type: InventoryItemType.MEAL, unit: Unit.G, stockQty: 5000, lowStockThreshold: 1000, packs: [{ label: 'Pack', size: 1000 }] },
+    // Snacks / ready to serve
+    { name: 'Tiramisu', type: InventoryItemType.SNACK, unit: Unit.PCS, stockQty: 12, lowStockThreshold: 4 },
+    { name: 'Nachos', type: InventoryItemType.SNACK, unit: Unit.G, stockQty: 2000, lowStockThreshold: 500, packs: [{ label: 'Pack', size: 500 }] },
     { name: 'Choco Chip Cookie', type: InventoryItemType.SNACK, unit: Unit.PCS, stockQty: 50, lowStockThreshold: 10 },
     { name: 'Banana Bread', type: InventoryItemType.SNACK, unit: Unit.PCS, stockQty: 30, lowStockThreshold: 5 },
     { name: 'Bottled Water', type: InventoryItemType.SNACK, unit: Unit.PCS, stockQty: 48, lowStockThreshold: 12 },
     { name: 'Calbee Honey Butter Chips', type: InventoryItemType.SNACK, unit: Unit.PCS, stockQty: 24, lowStockThreshold: 6 },
-    { name: 'Nachos', type: InventoryItemType.SNACK, unit: Unit.G, stockQty: 2000, lowStockThreshold: 500, packSize: 500, packLabel: 'pack' },
-    // Meals: sample lang hangga't wala pa ang totoong menu
-    { name: 'Hotdog', type: InventoryItemType.MEAL, unit: Unit.PCS, stockQty: 40, lowStockThreshold: 10, packSize: 10, packLabel: 'pack' },
-    { name: 'Corned Beef', type: InventoryItemType.MEAL, unit: Unit.PCS, stockQty: 12, lowStockThreshold: 4, packSize: 1, packLabel: 'can' },
-    { name: 'Spam', type: InventoryItemType.MEAL, unit: Unit.PCS, stockQty: 12, lowStockThreshold: 4, packSize: 1, packLabel: 'can' },
-    { name: 'Frozen Fries', type: InventoryItemType.MEAL, unit: Unit.G, stockQty: 5000, lowStockThreshold: 1000, packSize: 1000, packLabel: 'pack' },
   ];
   const inv: Record<string, number> = {};
-  for (const it of items) {
-    const existing = await prisma.inventoryItem.findUnique({ where: { name: it.name } });
-    if (existing) {
-      // Idagdag ang pack size sa lumang item kung wala pa
-      if (it.packSize && !existing.packSize) {
-        await prisma.inventoryItem.update({ where: { id: existing.id }, data: { packSize: it.packSize, packLabel: it.packLabel } });
-      }
-      inv[it.name] = existing.id;
-      continue;
+  for (const { packs = [], ...it } of items) {
+    let item = await prisma.inventoryItem.findUnique({ where: { name: it.name } });
+    if (!item) {
+      item = await prisma.inventoryItem.create({ data: it });
+      // Opening stock goes through the ledger like any other stock change.
+      await prisma.stockMovement.create({
+        data: {
+          inventoryItemId: item.id,
+          type: 'STOCK_IN',
+          qty: it.stockQty,
+          balanceAfter: it.stockQty,
+          userId: admin.id,
+          note: 'Opening stock (seed)',
+        },
+      });
     }
-    // Opening stock goes through the ledger like any other stock change.
-    const created = await prisma.inventoryItem.create({ data: it });
-    await prisma.stockMovement.create({
-      data: {
-        inventoryItemId: created.id,
-        type: 'STOCK_IN',
-        qty: it.stockQty,
-        balanceAfter: it.stockQty,
-        userId: admin.id,
-        note: 'Opening stock (seed)',
-      },
-    });
-    inv[it.name] = created.id;
+    // Idinadagdag ang mga lalagyan na wala pa (hindi binabago ang mga dati na)
+    for (const [index, pack] of packs.entries()) {
+      await prisma.inventoryPack.upsert({
+        where: { inventoryItemId_label: { inventoryItemId: item.id, label: pack.label } },
+        update: {},
+        create: { inventoryItemId: item.id, label: pack.label, size: pack.size, isDefault: index === 0 },
+      });
+    }
+    inv[it.name] = item.id;
   }
 
-  // ── Products + recipes ──
-  const cupSet = { '16oz Cup': 1, 'Flat Lid': 1, Straw: 1 };
-  const products: { name: string; category: string; type: ProductType; price: number; recipe: Record<string, number> }[] = [
-    { name: 'Iced Americano', category: 'Coffee', type: ProductType.MADE, price: 110, recipe: { 'Espresso Beans': 18, ...cupSet } },
-    { name: 'Iced Latte', category: 'Coffee', type: ProductType.MADE, price: 130, recipe: { 'Espresso Beans': 18, 'Fresh Milk': 200, ...cupSet } },
-    { name: 'Iced Caramel Macchiato', category: 'Coffee', type: ProductType.MADE, price: 150, recipe: { 'Espresso Beans': 18, 'Fresh Milk': 180, 'Caramel Syrup': 30, ...cupSet } },
-    { name: 'Iced Mocha', category: 'Coffee', type: ProductType.MADE, price: 145, recipe: { 'Espresso Beans': 18, 'Fresh Milk': 180, 'Chocolate Syrup': 30, ...cupSet } },
-    { name: 'Iced Matcha Latte', category: 'Non-Coffee', type: ProductType.MADE, price: 140, recipe: { 'Matcha Powder': 10, 'Fresh Milk': 200, 'Sugar Syrup': 20, ...cupSet } },
-    { name: 'Iced Chocolate', category: 'Non-Coffee', type: ProductType.MADE, price: 120, recipe: { 'Chocolate Syrup': 40, 'Fresh Milk': 200, ...cupSet } },
-    { name: 'Choco Chip Cookie', category: 'Snacks', type: ProductType.READY_MADE, price: 60, recipe: { 'Choco Chip Cookie': 1 } },
-    { name: 'Banana Bread', category: 'Snacks', type: ProductType.READY_MADE, price: 75, recipe: { 'Banana Bread': 1 } },
-    { name: 'Bottled Water', category: 'Snacks', type: ProductType.READY_MADE, price: 25, recipe: { 'Bottled Water': 1 } },
+  // ── Menu (mula sa docs/october92026/menu.png) ──
+  // Drinks: Hot (12oz), Iced (16oz), Upsize (22oz; wala pa sa menu). Food: isang presyo (REGULAR).
+  // Ang Coconut Matcha ay wala rito kasi natakpan ang presyo sa larawan.
+  type MenuItem = { name: string; category: string; prices: Partial<Record<ProductSize, number>> };
+  const hotIced = (hot: number | null, iced: number | null) => ({
+    ...(hot !== null ? { HOT: hot } : {}),
+    ...(iced !== null ? { ICED: iced } : {}),
+  });
+  const menu: MenuItem[] = [
+    // Coffee (Hot 12oz / Iced 16oz)
+    { name: 'Signature Americano', category: 'Coffee', prices: hotIced(100, 100) },
+    { name: 'Orange Americano', category: 'Coffee', prices: hotIced(null, 120) },
+    { name: 'Cafe Latte', category: 'Coffee', prices: hotIced(120, 120) },
+    { name: 'Seasalt Latte', category: 'Coffee', prices: hotIced(130, 130) },
+    { name: 'Vietnamese Latte', category: 'Coffee', prices: hotIced(130, 130) },
+    { name: 'Spanish Latte', category: 'Coffee', prices: hotIced(130, 130) },
+    { name: 'Caramel Macchiato', category: 'Coffee', prices: hotIced(140, 140) },
+    { name: 'White Chocolate Latte', category: 'Coffee', prices: hotIced(140, 140) },
+    { name: 'Mocha Latte', category: 'Coffee', prices: hotIced(140, 140) },
+    { name: 'Peppermint Mocha', category: 'Coffee', prices: hotIced(150, 150) },
+    // Special drinks
+    { name: 'Salted Cream Coffee', category: 'Special Drinks', prices: hotIced(150, 150) },
+    { name: 'Nutella Latte', category: 'Special Drinks', prices: hotIced(150, 150) },
+    { name: 'Biscoff Latte', category: 'Special Drinks', prices: hotIced(150, 150) },
+    { name: 'Earl Grey Latte', category: 'Special Drinks', prices: hotIced(null, 150) },
+    // Non coffee
+    { name: 'Signature Hot Choco de Batirol', category: 'Non-Coffee', prices: hotIced(140, null) },
+    { name: 'Orange Juice', category: 'Non-Coffee', prices: hotIced(null, 80) },
+    { name: 'Kalamansi Juice', category: 'Non-Coffee', prices: hotIced(null, 80) },
+    { name: 'Mango Juice', category: 'Non-Coffee', prices: hotIced(null, 100) },
+    { name: 'Strawberry Latte', category: 'Non-Coffee', prices: hotIced(null, 120) },
+    { name: 'Blueberry Latte', category: 'Non-Coffee', prices: hotIced(null, 120) },
+    { name: 'Chocolate Lava', category: 'Non-Coffee', prices: hotIced(null, 120) },
+    { name: 'Pink Guava Soda', category: 'Non-Coffee', prices: hotIced(null, 100) },
+    { name: 'Blueberry Soda', category: 'Non-Coffee', prices: hotIced(null, 80) },
+    { name: 'Strawberry Soda', category: 'Non-Coffee', prices: hotIced(null, 80) },
+    // Hojicha & Matcha (isang presyo sa menu; Iced muna, kumpirmahin kung may Hot)
+    { name: 'Hojicha Oat Latte', category: 'Hojicha & Matcha', prices: hotIced(null, 150) },
+    { name: 'Hojicha Earl Grey', category: 'Hojicha & Matcha', prices: hotIced(null, 160) },
+    { name: 'Hojicha Vanilla Latte', category: 'Hojicha & Matcha', prices: hotIced(null, 160) },
+    { name: 'Matcha Latte', category: 'Hojicha & Matcha', prices: hotIced(null, 130) },
+    { name: 'Earl Grey Matcha', category: 'Hojicha & Matcha', prices: hotIced(null, 150) },
+    // Snacks / sandwiches
+    { name: 'Fries', category: 'Snacks', prices: { REGULAR: 80 } },
+    { name: 'Cheesy Nachos', category: 'Snacks', prices: { REGULAR: 80 } },
+    { name: 'Grilled Cheese Sandwich', category: 'Snacks', prices: { REGULAR: 140 } },
+    { name: 'Cheesy Hotdog Sandwich', category: 'Snacks', prices: { REGULAR: 100 } },
+    { name: 'Spam & Egg Sandwich', category: 'Snacks', prices: { REGULAR: 120 } },
+    { name: 'Corned Beef Sandwich', category: 'Snacks', prices: { REGULAR: 120 } },
+    { name: 'Overload Sandwich', category: 'Snacks', prices: { REGULAR: 180 } },
+    // Rice meals
+    { name: 'Corned Beef & Egg Meal', category: 'Rice Meals', prices: { REGULAR: 140 } },
+    { name: 'Spam & Egg Meal', category: 'Rice Meals', prices: { REGULAR: 140 } },
+    { name: 'Hotdog & Egg Meal', category: 'Rice Meals', prices: { REGULAR: 100 } },
+    { name: 'Combo Corned Beef & Spam', category: 'Rice Meals', prices: { REGULAR: 220 } },
+    { name: 'Combo Spam & Hotdog', category: 'Rice Meals', prices: { REGULAR: 200 } },
   ];
-  for (const p of products) {
-    if (await prisma.product.findUnique({ where: { name: p.name } })) continue;
+  for (const item of menu) {
+    if (await prisma.product.findUnique({ where: { name: item.name } })) continue;
+    const prices = Object.entries(item.prices).map(([size, price]) => ({ size: size as ProductSize, price: price! }));
     await prisma.product.create({
       data: {
-        name: p.name,
-        type: p.type,
-        currentPrice: p.price,
-        categoryId: categories[p.category],
-        recipeItems: {
-          create: Object.entries(p.recipe).map(([item, qty]) => ({
-            inventoryItemId: inv[item],
-            qtyPerUnit: qty,
-          })),
-        },
+        name: item.name,
+        type: ProductType.MADE,
+        categoryId: categories[item.category],
+        prices: { create: prices },
         priceHistory: {
-          create: { oldPrice: null, newPrice: p.price, changedById: admin.id, reason: 'Initial price (seed)' },
+          create: prices.map((p) => ({
+            size: p.size,
+            oldPrice: null,
+            newPrice: p.price,
+            changedById: admin.id,
+            reason: 'Initial price (menu)',
+          })),
         },
       },
     });
   }
 
+  // Ang mga sample na produkto na wala sa totoong menu ay ide-deactivate (hindi buburahin)
+  await prisma.product.updateMany({
+    where: { name: { notIn: menu.map((m) => m.name) }, isActive: true },
+    data: { isActive: false },
+  });
   console.log('Seed complete. Default password for all users:', DEFAULT_PASSWORD);
 }
 

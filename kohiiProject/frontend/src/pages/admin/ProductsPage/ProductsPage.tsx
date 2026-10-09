@@ -13,7 +13,8 @@ import { getCategories } from '../../../api/categories.api';
 import { getProducts, updateProduct } from '../../../api/products.api';
 import type { Category, Product } from '../../../types';
 import { formatPeso } from '../../../utils/format';
-import { allowsUpsize, categoryGroupLabels, categoryGroupOrder } from '../../../utils/categoryGroups';
+import { categoryGroupLabels, categoryGroupOrder } from '../../../utils/categoryGroups';
+import { priceOf, sizeLabels, sizeOunces, sizesFor } from '../../../utils/productSizes';
 
 import plusIcon from '../../../assets/icons/actions/plus.svg';
 import editIcon from '../../../assets/icons/actions/edit.svg';
@@ -233,7 +234,22 @@ function ProductsPage() {
   };
 
   const columnsFor = (category: Category): DataTableColumn<Product>[] => {
-    const canUpsize = allowsUpsize(category.group);
+    // Drinks: Hot / Iced / Upsize na column. Food: isang Price
+    const priceColumns: DataTableColumn<Product>[] = sizesFor(category.group).map((size) => ({
+      key: `price-${size}`,
+      header: sizeOunces[size] ? `${sizeLabels[size]} ${sizeOunces[size]}` : sizeLabels[size],
+      width: 120,
+      align: 'right',
+      sortValue: (p) => priceOf(p, size),
+      render: (p) => {
+        const value = priceOf(p, size);
+        return value === null ? (
+          <span className={styles.noUpsize}>None</span>
+        ) : (
+          <span className={styles.price}>{formatPeso(value)}</span>
+        );
+      },
+    }));
     return [
       {
         key: 'name',
@@ -246,30 +262,7 @@ function ProductsPage() {
           </>
         ),
       },
-      {
-        key: 'regular',
-        header: canUpsize ? 'Regular' : 'Price',
-        width: 130,
-        align: 'right',
-        render: (p) => <span className={styles.price}>{formatPeso(p.currentPrice)}</span>,
-      },
-      // Drinks lang ang may upsize
-      ...(canUpsize
-        ? [
-            {
-              key: 'upsize',
-              header: 'Upsize',
-              width: 130,
-              align: 'right',
-              render: (p) =>
-                p.upsizePrice === null ? (
-                  <span className={styles.noUpsize}>No upsize</span>
-                ) : (
-                  <span className={styles.price}>{formatPeso(p.upsizePrice)}</span>
-                ),
-            } satisfies DataTableColumn<Product>,
-          ]
-        : []),
+      ...priceColumns,
       { key: 'status', header: 'Status', width: 130, render: (p) => <StatusBadge active={p.isActive} /> },
     ];
   };
@@ -436,7 +429,7 @@ function ProductsPage() {
                       </h2>
                       <p className={styles.sectionMeta}>
                         {countIn(category.id)} active · {categoryGroupLabels[category.group]}
-                        {allowsUpsize(category.group) ? ' · with upsize' : ''}
+                        {category.group === 'DRINKS' ? ' · hot, iced, upsize' : ''}
                       </p>
                     </div>
 

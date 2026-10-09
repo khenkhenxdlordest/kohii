@@ -38,13 +38,19 @@ export class CategoriesService {
   }
 
   async update(id: number, data: { name?: string; group?: CategoryGroup; isActive?: boolean }, userId: number) {
-    // Kapag ginawang hindi drinks, dapat walang product na may upsize sa category na ito
-    if (data.group && data.group !== CategoryGroup.DRINKS) {
-      const withUpsize = await this.prisma.product.count({ where: { categoryId: id, upsizePrice: { not: null } } });
-      if (withUpsize > 0) {
-        throw new BadRequestException(
-          `${withUpsize} product(s) in this category have an upsize price. Remove their upsize first.`,
-        );
+    // Magkaiba ang presyo ng drinks (Hot/Iced/Upsize) at ng food (isang presyo),
+    // kaya hindi puwedeng ilipat ng grupo ang category na may laman na
+    if (data.group) {
+      const current = await this.prisma.category.findUnique({ where: { id } });
+      const switchesKind =
+        current && (current.group === CategoryGroup.DRINKS) !== (data.group === CategoryGroup.DRINKS);
+      if (switchesKind) {
+        const count = await this.prisma.product.count({ where: { categoryId: id } });
+        if (count > 0) {
+          throw new BadRequestException(
+            `This category has ${count} product(s). Drinks and food are priced differently, so it cannot switch between them.`,
+          );
+        }
       }
     }
     try {

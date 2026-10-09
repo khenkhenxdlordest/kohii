@@ -4,8 +4,9 @@ import Button from '../../../../ui/Button/Button';
 import styles from './ProductFormModal.module.css';
 
 import { createProduct, updateProduct } from '../../../../../api/products.api';
-import type { Category, Product, ProductType } from '../../../../../types';
-import { allowsUpsize, categoryGroupLabels, categoryGroupOrder } from '../../../../../utils/categoryGroups';
+import type { Category, Product, ProductSize, ProductType } from '../../../../../types';
+import { categoryGroupLabels, categoryGroupOrder } from '../../../../../utils/categoryGroups';
+import { sizeLabels, sizeOunces, sizesFor } from '../../../../../utils/productSizes';
 
 interface ProductFormModalProps {
   /** null = bagong product; may laman = edit */
@@ -31,28 +32,30 @@ function ProductFormModal({ product, categories, defaultCategoryId, onClose, onS
   const [name, setName] = useState(product?.name ?? '');
   const [categoryId, setCategoryId] = useState(String(product?.categoryId ?? firstCategory?.id ?? ''));
   const [type, setType] = useState<ProductType>(product?.type ?? 'MADE');
-  const [price, setPrice] = useState('');
-  const [upsizePrice, setUpsizePrice] = useState('');
+  // Presyo bawat size; blangko = hindi ibinebenta sa size na iyon
+  const [prices, setPrices] = useState<Partial<Record<ProductSize, string>>>({});
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
   const selectedGroup = activeCategories.find((c) => c.id === Number(categoryId))?.group;
-  const canUpsize = selectedGroup !== undefined && allowsUpsize(selectedGroup);
+  const isDrink = selectedGroup === 'DRINKS';
+  const sizes = selectedGroup ? sizesFor(selectedGroup) : [];
+  // Magkaiba ang presyo ng drinks at food, kaya hindi puwedeng ilipat sa ibang uri
+  const switchesKind = isEdit && selectedGroup !== undefined && isDrink !== (product.category.group === 'DRINKS');
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
+    const entered = sizes.filter((size) => prices[size]?.trim()).map((size) => ({ size, price: Number(prices[size]) }));
+    if (!isEdit && isDrink && !entered.some((p) => p.size === 'HOT' || p.size === 'ICED')) {
+      setError('Enter a Hot or Iced price.');
+      return;
+    }
     setSaving(true);
     try {
       const saved = isEdit
         ? await updateProduct(product.id, { name, categoryId: Number(categoryId), type })
-        : await createProduct({
-            name,
-            categoryId: Number(categoryId),
-            type,
-            price: Number(price),
-            upsizePrice: canUpsize && upsizePrice.trim() ? Number(upsizePrice) : undefined,
-          });
+        : await createProduct({ name, categoryId: Number(categoryId), type, prices: entered });
       onSaved(saved);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save the product.');
@@ -64,7 +67,9 @@ function ProductFormModal({ product, categories, defaultCategoryId, onClose, onS
     <Modal
       open
       title={isEdit ? 'Edit product' : 'New product'}
-      description={isEdit ? 'To change the price, use Change price instead.' : 'Add a drink, rice meal or snack to the menu.'}
+      description={
+        isEdit ? 'To change the price, use Change price instead.' : 'Add a drink, rice meal or snack to the menu.'
+      }
       onClose={onClose}
       width={520}
       footer={
@@ -127,55 +132,35 @@ function ProductFormModal({ product, categories, defaultCategoryId, onClose, onS
               );
             })}
           </select>
-          {isEdit && product.upsizePrice !== null && !canUpsize && (
+          {switchesKind && (
             <p className={styles.warning}>
-              This product has an upsize price. Remove it first in Change price before moving it out of drinks.
+              Drinks and food are priced differently. Choose a category of the same kind.
             </p>
           )}
         </div>
 
-        {!isEdit && (
-          <div className={styles.row}>
-            <div className={styles.field}>
-              <label className={styles.label} htmlFor="product-price">
-                {canUpsize ? 'Regular price (PHP)' : 'Price (PHP)'}
-              </label>
-              <input
-                id="product-price"
-                className={styles.input}
-                type="number"
-                inputMode="decimal"
-                min="0.01"
-                step="0.01"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                placeholder="0.00"
-                required
-              />
-            </div>
-            {canUpsize ? (
-              <div className={styles.field}>
-                <label className={styles.label} htmlFor="product-upsize-price">
-                  Upsize price (PHP) <span className={styles.optional}>optional</span>
+        {!isEdit && sizes.length > 0 && (
+          <div className={styles.priceRow}>
+            {sizes.map((size) => (
+              <div key={size} className={styles.field}>
+                <label className={styles.label} htmlFor={`price-${size}`}>
+                  {sizeLabels[size]}
+                  {sizeOunces[size] && <span className={styles.optional}> {sizeOunces[size]}</span>}
                 </label>
                 <input
-                  id="product-upsize-price"
+                  id={`price-${size}`}
                   className={styles.input}
                   type="number"
                   inputMode="decimal"
-                  min={price || '0.01'}
+                  min="0.01"
                   step="0.01"
-                  value={upsizePrice}
-                  onChange={(e) => setUpsizePrice(e.target.value)}
-                  placeholder="Leave blank if no upsize"
+                  value={prices[size] ?? ''}
+                  onChange={(e) => setPrices((p) => ({ ...p, [size]: e.target.value }))}
+                  placeholder={isDrink ? 'None' : '0.00'}
+                  required={!isDrink}
                 />
               </div>
-            ) : (
-              <p className={styles.noUpsize}>
-                {selectedGroup ? categoryGroupLabels[selectedGroup] : 'This category'} have one price only. Upsize is for
-                drinks.
-              </p>
-            )}
+            ))}
           </div>
         )}
 

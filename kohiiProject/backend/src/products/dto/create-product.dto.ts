@@ -2,9 +2,11 @@ export class CreateProductDto {
   name!: string;
   categoryId!: number;
   type!: string;
-  price!: number;
-  /** Wala o null = walang upsize */
-  upsizePrice?: number | null;
+  /**
+   * Drinks: [{ size: 'HOT', price: 120 }, { size: 'ICED', price: 120 }, { size: 'UPSIZE', price: 140 }]
+   * Rice meals at snacks: [{ size: 'REGULAR', price: 140 }]
+   */
+  prices!: { size: string; price: number }[];
 }
 
 export class UpdateProductDto {
@@ -15,9 +17,9 @@ export class UpdateProductDto {
 }
 
 export class ChangePriceDto {
-  /** REGULAR (default) o UPSIZE */
-  size?: string;
-  /** null para tanggalin ang upsize */
+  /** REGULAR | HOT | ICED | UPSIZE */
+  size!: string;
+  /** null para tanggalin ang presyo ng size na ito */
   price!: number | null;
   reason?: string;
 }

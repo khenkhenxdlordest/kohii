@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { ProductsService } from './products.service.js';
 import { ChangePriceDto, CreateProductDto, UpdateProductDto } from './dto/create-product.dto.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
@@ -18,6 +18,14 @@ import {
 
 const productTypes = Object.values(ProductType);
 const productSizes = Object.values(ProductSize);
+
+function parsePrices(value: unknown) {
+  if (!Array.isArray(value) || value.length === 0) throw new BadRequestException('Enter at least one price.');
+  return value.map((p: Record<string, unknown>) => ({
+    size: requireEnum(p?.size, productSizes, 'Size'),
+    price: requirePrice(p?.price),
+  }));
+}
 
 @Controller('products')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -55,11 +63,7 @@ export class ProductsController {
         name: requireString(body?.name, 'Name', 80),
         categoryId: requireId(body?.categoryId, 'Category'),
         type: requireEnum(body?.type, productTypes, 'Type'),
-        price: requirePrice(body?.price),
-        upsizePrice:
-          body?.upsizePrice === undefined || body.upsizePrice === null || String(body.upsizePrice) === ''
-            ? undefined
-            : requirePrice(body.upsizePrice, 'Upsize price'),
+        prices: parsePrices(body?.prices),
       },
       req.user.sub,
     );
@@ -81,16 +85,16 @@ export class ProductsController {
     );
   }
 
-  // PATCH /api/products/:id/price  { size: 'REGULAR' | 'UPSIZE', price, reason }
-  // Para tanggalin ang upsize: { size: 'UPSIZE', price: null }
+  // PATCH /api/products/:id/price  { size: 'REGULAR' | 'HOT' | 'ICED' | 'UPSIZE', price, reason }
+  // Para tanggalin ang presyo ng isang size: { size: 'UPSIZE', price: null }
   @Patch(':id/price')
   @Roles(Role.ADMIN)
   changePrice(@Param('id') id: string, @Body() body: ChangePriceDto, @Req() req: AuthRequest) {
-    const size = body?.size === undefined ? ProductSize.REGULAR : requireEnum(body.size, productSizes, 'Size');
+    const size = requireEnum(body?.size, productSizes, 'Size');
     return this.productsService.changePrice(
       requireId(id, 'Product'),
       size,
-      size === ProductSize.UPSIZE && body?.price === null ? null : requirePrice(body?.price),
+      body?.price === null ? null : requirePrice(body?.price),
       optionalString(body?.reason, 'Reason', 200),
       req.user.sub,
     );

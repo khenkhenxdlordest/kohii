@@ -1,1 +1,322 @@
-/* Styles para sa InventoryOverviewPage */
+.page {
+  padding-bottom: 40px;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.title {
+  margin: 0;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 30px;
+  font-weight: 400;
+  color: var(--espresso);
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+  animation: fadeUp 300ms ease backwards;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Tabs bawat uri ── */
+.typeTabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.typeTab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px 12px;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+
+.typeTab::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -1px;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--espresso);
+  transform: scaleX(0);
+  transition: transform 200ms ease;
+}
+
+.typeTab:hover {
+  color: var(--ink);
+}
+
+.typeTab:focus-visible {
+  outline: 2px solid var(--espresso);
+  outline-offset: -2px;
+  border-radius: 10px;
+}
+
+.typeTabActive {
+  color: var(--espresso);
+}
+
+.typeTabActive::after {
+  transform: scaleX(1);
+}
+
+.tabCount {
+  min-width: 24px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--cream);
+  font-size: 12px;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.typeTabActive .tabCount {
+  background: var(--espresso);
+  color: var(--cream);
+}
+
+/* Bilang ng mababa o ubos sa tab */
+.tabAlert {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #9b2c2c;
+  font-size: 11px;
+  color: #fff;
+  text-align: center;
+}
+
+/* ── Toolbar ── */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.search {
+  flex: 1 1 260px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.search:focus-within {
+  border-color: var(--espresso);
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.segmented {
+  display: inline-flex;
+  height: 42px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.segmented button {
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.segmented button:focus-visible {
+  outline: 2px solid var(--espresso);
+}
+
+.segmented .segmentActive {
+  background: var(--espresso);
+  color: var(--cream);
+}
+
+.alert,
+.notice {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.alert {
+  background: #fbeceb;
+  color: #9b2c2c;
+}
+
+.notice {
+  background: #dcebe5;
+  color: #2f6b4f;
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 48px 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  font-size: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.state p {
+  margin: 0;
+}
+
+/* ── Laman ng table ── */
+.name {
+  display: block;
+  font-weight: 600;
+}
+
+.packs {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.onHand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.qty {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.equivalent {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.lowAt {
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.statusDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.OK {
+  background: #dcebe5;
+  color: #2f6b4f;
+}
+
+.LOW {
+  background: #f6ead0;
+  color: #8a5f12;
+}
+
+.OUT {
+  background: #fbeceb;
+  color: #9b2c2c;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cards {
+    animation: none;
+  }
+
+  .typeTab::after {
+    transition: none;
+  }
+}

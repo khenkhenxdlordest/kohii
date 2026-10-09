@@ -1,4 +1,4 @@
-import type { Product, ProductDetail, ProductSize, ProductType } from '../types';
+import type { Product, ProductDetail, ProductSize, ProductType, SizePrice } from '../types';
 import { apiRequest } from './client';
 
 export interface ProductFilters {
@@ -11,9 +11,8 @@ export interface ProductInput {
   name: string;
   categoryId: number;
   type: ProductType;
-  price: number;
-  /** Wala = walang upsize */
-  upsizePrice?: number;
+  /** Drinks: HOT/ICED/UPSIZE (kailangan ng Hot o Iced). Food: isang REGULAR */
+  prices: SizePrice[];
 }
 
 export function getProducts(filters: ProductFilters = {}) {
@@ -36,12 +35,12 @@ export function createProduct(data: ProductInput) {
 /** Hindi kasama ang presyo; gamitin ang changeProductPrice para may history */
 export function updateProduct(
   id: number,
-  data: Partial<Omit<ProductInput, 'price' | 'upsizePrice'>> & { isActive?: boolean },
+  data: Partial<Omit<ProductInput, 'prices'>> & { isActive?: boolean },
 ) {
   return apiRequest<Product>(`/products/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
 }
 
-/** Para sa UPSIZE, ang price = null ay pagtanggal ng upsize */
+/** Itinatakda o idinadagdag ang presyo ng isang size; ang price = null ay pagtanggal */
 export function changeProductPrice(id: number, size: ProductSize, price: number | null, reason?: string) {
   return apiRequest<Product>(`/products/${id}/price`, {
     method: 'PATCH',

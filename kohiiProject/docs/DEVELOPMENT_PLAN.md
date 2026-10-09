@@ -123,7 +123,10 @@ Bawat phase: **backend endpoint → frontend page → test sa browser → commit
 - [x] Shift ng store staff: **AM o PM** (kumpirmahin sa store)
 - [x] Categories: add, edit, activate/deactivate (`/api/categories`). Walang sariling page; nasa **Manage Categories** na modal sa Products page. May menu group ang bawat category (Drinks / Rice Meals / Snacks); **Drinks lang ang may upsize**
 - [x] Products + **price change na may history** (`/api/products`, `PATCH /api/products/:id/price`). Isang tab at table bawat category; Regular at Upsize na presyo
-- [x] Inventory items, backend lang (`/api/inventory/items`, filter: Raw Material / Packaging / Snack / Meal, may pack size). Wala pang UI
+- [x] **Inventory (Admin)**: page na may tabs (Coffee Bar, Kitchen, Packaging, Snacks), add/edit item, **maraming lalagyan bawat item** (hal. Oil: Pack at Bottle; Rice: Sack at Kilo), stock in, withdraw, waste, history. Batay sa interview 10/09/2026 (`docs/october92026`)
+- [x] **Emergency purchase**: stock in na galing sa labas (hal. sari-sari store kapag naubusan ng oil), may halagang ibinayad. Placeholder para sa expenses (kabuuan ngayong buwan sa Inventory page)
+- [x] **Waste na may dahilan**: Spoiled (hal. hindi na-ref), Expired, Spilled, Damaged, Other
+- [x] **Menu mula sa menu.png**: 41 produkto, 6 category. Presyo bawat size: **Hot (12oz), Iced (16oz), Upsize (22oz)** para sa drinks; isang presyo para sa food
 - [ ] Recipes (product → items + qty)
 - [x] AuditLog sa bawat create, edit, price change o deactivate ng category at product
 

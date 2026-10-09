@@ -22,16 +22,6 @@
   font-weight: 600;
 }
 
-.noUpsize {
-  align-self: end;
-  margin: 0;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: var(--cream);
-  font-size: 12px;
-  color: var(--muted);
-}
-
 .warning {
   margin: 6px 0 0;
   font-size: 12px;
@@ -115,4 +105,10 @@
   font-size: 13px;
   font-weight: 500;
   color: #9b2c2c;
+}
+
+.priceRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
 }
