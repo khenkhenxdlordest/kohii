@@ -1,0 +1,384 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.subtitle {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.iconButton {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  border-color: var(--espresso);
+  color: var(--espresso);
+}
+
+.expandButton {
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.expandButton:hover {
+  border-color: var(--espresso);
+  color: var(--espresso);
+}
+
+.viewToggle {
+  display: inline-flex;
+  height: 30px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.viewToggle button {
+  padding: 0 10px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.viewToggleActive {
+  background: var(--espresso) !important;
+  color: var(--cream) !important;
+}
+
+.exportWrap {
+  position: relative;
+}
+
+.exportMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(31, 23, 18, 0.14);
+}
+
+.exportMenu button {
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.exportMenu button:hover {
+  background: var(--cream);
+}
+
+/* ── Plot ── */
+
+.scroll {
+  /* overflow-x: auto kasama ang overflow-y na hindi "hidden" ay nagiging
+     auto rin sa Y ayon sa CSS spec, kaya lumalabas ang di-inaasahang
+     vertical scrollbar - kailangang explicit ang hidden dito */
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+
+.plot {
+  min-width: 100%;
+  width: max-content;
+  /* Ang top padding ay reserved space para sa hover tooltip (lumulutang sa
+     itaas ng bar), hindi para sa gridline label - kailangan nito para hindi
+     maputol ng overflow-y: hidden sa .scroll. Ang left padding ay sapat na
+     para sa pinakamahabang halaga (hal. ₱1,234,567) na walang dumidikit sa bar */
+  padding: 56px 0 0 84px;
+}
+
+/* .track ang iisang box na pinagbabasehan ng gridlines AT ng bars (parehong %),
+   kaya laging magkatapat sila kahit anong taas */
+.track {
+  position: relative;
+}
+
+/* Nakadikit sa top ang bawat row (hindi bottom), para hindi tumurok sa itaas
+   ng box ang label ng pinakamataas na tick; centered lang ang gitnang tick.
+   Negative left = sumasakop sa reserved padding-left ng .plot (84px), hindi
+   sa espasyo ng .bars, kaya hindi na kailanman magkikita ang label at ang bar.
+   Walang z-index dito - ang guhit (gridLineInner) ay dapat nasa LIKOD ng bars
+   (karaniwang chart convention), tanging ang number (gridLabel) lang ang
+   dapat laging nakikita sa ibabaw */
+.gridRow {
+  position: absolute;
+  left: -84px;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gridRowMid {
+  transform: translateY(-50%);
+}
+
+.gridLabel {
+  position: relative;
+  z-index: 2;
+  width: 54px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  text-align: right;
+  font-size: 10px;
+  color: var(--muted);
+  background: var(--surface);
+}
+
+.gridLineInner {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+/* justify-content: center - kapag umabot na ang bawat bar sa max-width nito
+   (konti lang ang bars sa malapad na container), ang natitirang espasyo ay
+   napupunta sa magkabilang gilid imbes na nakabunton sa kanan na walang laman */
+.bars {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100%;
+  min-width: 400px;
+  gap: 3px;
+}
+
+.barCol {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex: 1;
+  min-width: 8px;
+  max-width: 32px;
+  height: 100%;
+}
+
+.barWrap {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.bar {
+  position: relative;
+  width: 70%;
+  max-width: 24px;
+  border-radius: 4px 4px 0 0;
+  background: var(--espresso);
+  transition:
+    height 400ms cubic-bezier(0.33, 1, 0.68, 1),
+    background 120ms ease;
+}
+
+.barWrap:hover .bar,
+.barWrap:focus-visible .bar {
+  background: var(--espresso-hover);
+}
+
+.barWrap:focus-visible {
+  outline: none;
+}
+
+/* Parehong gap/flex:1/justify-content ng .bars, kaya pumapatak ang bawat label sa ibaba ng tamang bar */
+.xAxisRow {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+  min-width: 400px;
+  margin-top: 8px;
+}
+
+.xLabel {
+  flex: 1;
+  min-width: 8px;
+  max-width: 32px;
+  text-align: center;
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Speech-bubble: pure CSS, lumalabas lang sa hover/focus ng bar. Mas malapad
+   ito kaysa sa makitid na bar column, kaya kailangan ng sariling z-index
+   para hindi ito matakpan ng mga kalapit na bar (na walang z-index, DOM
+   order lang ang susundin kung wala nito) */
+.label {
+  position: absolute;
+  z-index: 5;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--espresso);
+  color: #fff;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 4px);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+}
+
+.label::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  width: 8px;
+  height: 8px;
+  background: var(--espresso);
+  transform: translateX(-50%) rotate(45deg);
+  border-radius: 2px;
+}
+
+.barWrap:hover .label,
+.barWrap:focus-visible .label {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.labelValue {
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.labelMeta {
+  font-size: 10px;
+  color: var(--latte);
+}
+
+/* ── Fullscreen ── */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+  background: rgba(31, 23, 18, 0.55);
+  animation: overlayIn 180ms ease;
+}
+
+.overlayClosing {
+  animation: overlayOut 200ms ease forwards;
+}
+
+.fsPanel {
+  width: min(960px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  padding: 24px;
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: 0 24px 60px rgba(31, 23, 18, 0.3);
+  animation: overlayIn 200ms ease;
+}
+
+.fsPanelClosing {
+  animation: overlayOut 200ms ease forwards;
+}
+
+@keyframes overlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes overlayOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .label,
+  .overlay,
+  .overlayClosing,
+  .fsPanel,
+  .fsPanelClosing,
+  .bar {
+    animation: none;
+    transition: none;
+  }
+}

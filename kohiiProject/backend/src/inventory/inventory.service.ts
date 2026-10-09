@@ -10,6 +10,7 @@ import {
 } from '../generated/prisma/client.js';
 import { rethrowPrismaError } from '../common/utils/prisma-errors.js';
 import { toAuditJson } from '../common/utils/audit.js';
+import { RealtimeService } from '../realtime/realtime.service.js';
 
 const itemInclude = {
   packs: { where: { isActive: true }, orderBy: [{ isDefault: 'desc' as const }, { size: 'asc' as const }] },
@@ -96,7 +97,16 @@ export interface WasteInput extends QuantityInput {
 
 @Injectable()
 export class InventoryService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly realtime: RealtimeService,
+  ) {}
+
+  /** Ipinapadala sa lahat ng konektadong device matapos ang stock-in/withdraw/waste */
+  private broadcastStock(item: ReturnType<typeof toItemResponse>) {
+    this.realtime.emitStockUpdated(item);
+    if (item.stockStatus !== 'OK') this.realtime.emitStockLow(item);
+  }
 
   async findItems({ type, search, lowStockOnly, includeInactive }: ItemFilters) {
     const items = await this.prisma.inventoryItem.findMany({
@@ -249,7 +259,9 @@ export class InventoryService {
       });
       // Binabasa sa loob ng transaction para tama ang bagong stock
       const fresh = await tx.inventoryItem.findUniqueOrThrow({ where: { id }, include: itemInclude });
-      return { item: toItemResponse(fresh), movementId: movement.id };
+      const response = toItemResponse(fresh);
+      this.broadcastStock(response);
+      return { item: response, movementId: movement.id };
     });
   }
 
@@ -274,7 +286,9 @@ export class InventoryService {
       });
       // Binabasa sa loob ng transaction para tama ang bagong stock
       const fresh = await tx.inventoryItem.findUniqueOrThrow({ where: { id }, include: itemInclude });
-      return { item: toItemResponse(fresh), movementId: movement.id };
+      const response = toItemResponse(fresh);
+      this.broadcastStock(response);
+      return { item: response, movementId: movement.id };
     });
   }
 
@@ -301,7 +315,9 @@ export class InventoryService {
       });
       // Binabasa sa loob ng transaction para tama ang bagong stock
       const fresh = await tx.inventoryItem.findUniqueOrThrow({ where: { id }, include: itemInclude });
-      return { item: toItemResponse(fresh), movementId: movement.id };
+      const response = toItemResponse(fresh);
+      this.broadcastStock(response);
+      return { item: response, movementId: movement.id };
     });
   }
 

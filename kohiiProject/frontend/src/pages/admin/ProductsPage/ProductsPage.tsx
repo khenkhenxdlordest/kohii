@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type DragEvent } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type DragEvent, type MouseEvent } from 'react';
 import styles from './ProductsPage.module.css';
 
 import Button from '../../../components/ui/Button/Button';
@@ -25,6 +25,8 @@ import manageIcon from '../../../assets/icons/actions/manage.svg';
 import gripIcon from '../../../assets/icons/actions/grip.svg';
 import upIcon from '../../../assets/icons/actions/chevron-up.svg';
 import downIcon from '../../../assets/icons/actions/chevron-down.svg';
+// Pansamantalang larawan habang wala pang na-a-upload na photo ang product
+import samplePhoto from '../../../assets/images/sampleimagemenu/sampleCoffee.png';
 
 type StatusFilter = 'active' | 'inactive' | 'all';
 
@@ -81,6 +83,13 @@ function ProductsPage() {
   const [manageOpen, setManageOpen] = useState(false);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [actionError, setActionError] = useState('');
+  const [preview, setPreview] = useState<{ src: string; top: number; left: number } | null>(null);
+
+  // Lumulutang na malaking preview ng thumbnail kapag hinover ang product photo
+  const showPreview = (e: MouseEvent<HTMLImageElement>, src: string) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setPreview({ src, top: rect.bottom + 8, left: rect.left });
+  };
 
   // Kinukuha lahat nang isang beses; maliit lang ang menu kaya sa browser na lang ang filter
   useEffect(() => {
@@ -256,10 +265,19 @@ function ProductsPage() {
         header: 'Product',
         searchValue: (p) => p.name,
         render: (p, highlight) => (
-          <>
-            <span className={styles.name}>{highlight(p.name)}</span>
-            <span className={styles.type}>{typeLabels[p.type]}</span>
-          </>
+          <div className={styles.nameCell}>
+            <img
+              className={styles.thumb}
+              src={p.imageUrl ?? samplePhoto}
+              alt=""
+              onMouseEnter={(e) => showPreview(e, p.imageUrl ?? samplePhoto)}
+              onMouseLeave={() => setPreview(null)}
+            />
+            <div>
+              <span className={styles.name}>{highlight(p.name)}</span>
+              <span className={styles.type}>{typeLabels[p.type]}</span>
+            </div>
+          </div>
         ),
       },
       ...priceColumns,
@@ -515,6 +533,15 @@ function ProductsPage() {
           categories={categories}
           onClose={() => setManageOpen(false)}
           onCategoriesChange={handleCategoriesChange}
+        />
+      )}
+
+      {preview && (
+        <img
+          className={styles.hoverPreview}
+          src={preview.src}
+          alt=""
+          style={{ top: preview.top, left: preview.left }}
         />
       )}
     </section>

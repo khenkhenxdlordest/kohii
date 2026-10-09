@@ -127,17 +127,6 @@
   background: var(--cream);
 }
 
-.avatar {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--latte);
-  color: var(--espresso);
-}
-
 .profileText {
   min-width: 0;
   display: flex;

@@ -1,4 +1,20 @@
-import { BadRequestException, Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 import { ProductsService } from './products.service.js';
 import { ChangePriceDto, CreateProductDto, UpdateProductDto } from './dto/create-product.dto.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
@@ -18,6 +34,10 @@ import {
 
 const productTypes = Object.values(ProductType);
 const productSizes = Object.values(ProductSize);
+
+const IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+// PNG lang: kailangan ng transparency ang background-removed na larawan
+const IMAGE_EXTS = new Set(['.png']);
 
 function parsePrices(value: unknown) {
   if (!Array.isArray(value) || value.length === 0) throw new BadRequestException('Enter at least one price.');
@@ -81,6 +101,36 @@ export class ProductsController {
         type: body?.type === undefined ? undefined : requireEnum(body.type, productTypes, 'Type'),
         isActive: optionalBoolean(body?.isActive, 'Status'),
       },
+      req.user.sub,
+    );
+  }
+
+  // POST /api/products/:id/image — PNG na background-removed na sa browser
+  @Post(':id/image')
+  @Roles(Role.ADMIN)
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: diskStorage({
+        destination: 'uploads/product-images',
+        filename: (req, file, callback) => {
+          callback(null, `${req.params.id}-${Date.now()}${extname(file.originalname).toLowerCase()}`);
+        },
+      }),
+      limits: { fileSize: IMAGE_MAX_BYTES },
+      fileFilter: (_req, file, callback) => {
+        if (!IMAGE_EXTS.has(extname(file.originalname).toLowerCase())) {
+          callback(new BadRequestException('Image must be PNG.'), false);
+          return;
+        }
+        callback(null, true);
+      },
+    }),
+  )
+  uploadImage(@Param('id') id: string, @UploadedFile() file: Express.Multer.File, @Req() req: AuthRequest) {
+    if (!file) throw new BadRequestException('Please choose an image.');
+    return this.productsService.update(
+      requireId(id, 'Product'),
+      { imageUrl: `/uploads/product-images/${file.filename}` },
       req.user.sub,
     );
   }

@@ -52,6 +52,7 @@ src/
   inventory/           ← stock-in, audit, waste, movements, low-stock
   orders/              ← POS, shift, void
   reports/  dashboard/ ← sales/inventory reports, product performance
+  realtime/            ← WebSocket gateway (Socket.IO) — live stock, orders, low-stock
 ```
 Bawat module ay may: `*.module.ts` · `*.controller.ts` · `*.service.ts` · `dto/`
 
@@ -161,6 +162,25 @@ Bawat phase: **backend endpoint → frontend page → test sa browser → commit
 - Product performance: best sellers, slow movers
 - Dashboard cards + charts
 - Print o export (PDF/CSV, optional)
+
+### Phase 6.5 — Real-time (Socket.IO / WebSocket)
+> Dalawang store (Alley at Podium) na gumagamit ng **iisang centralized na inventory at menu**, kaya kailangan ng live sync sa pagitan ng mga tablet/device sa halip na manual refresh.
+**Backend:** `@nestjs/websockets` + `@nestjs/platform-socket.io` sa `realtime/` module. Iisang gateway (`events.gateway.ts`), naka-guard din ng JWT (parehong token sa REST). Room bawat store (`store:<id>`) at isang broadcast room para sa Admin.
+**Mga event (unang batch):**
+| Event | Kailan ipinapadala | Sino ang nakikinig |
+|---|---|---|
+| `stock:updated` | Matapos ang stock-in, withdraw, waste o audit adjust | Clerk at Admin (lahat ng store, dahil centralized ang inventory) |
+| `stock:low` | Pagbaba ng isang item sa low-stock threshold | Clerk at Admin |
+| `order:created` | Matapos ma-save ang isang POS order | Admin (monitoring), parehong cashier terminal sa store |
+| `shift:changed` | Pag-open o pag-close ng shift | Admin |
+**Frontend:** `socket.io-client`, isang `hooks/useRealtime.ts` o `context/RealtimeProvider.tsx` na kumokonekta gamit ang parehong JWT; ina-invalidate/ire-refresh ang kaukulang list (hal. Low Stock page, Inventory Overview) sa halip na full page reload.
+**Kailangang i-install:** `socket.io`, `@nestjs/websockets`, `@nestjs/platform-socket.io` (backend) · `socket.io-client` (frontend)
+**Tapos na kapag:** may stock-in sa isang device, nag-u-update agad ang Low Stock at Inventory Overview sa ibang open na device nang walang manual refresh
+- [ ] Gateway + JWT auth sa socket connection
+- [ ] `stock:updated` / `stock:low`
+- [ ] `order:created`
+- [ ] `shift:changed`
+- [ ] Frontend provider/hook + pag-subscribe sa mga apektadong page
 
 ### Phase 7 — 🔒 Final Defense Hardening
 - [ ] **I-on ang password hashing:** `PASSWORD_HASHING=true` sa `backend/.env`

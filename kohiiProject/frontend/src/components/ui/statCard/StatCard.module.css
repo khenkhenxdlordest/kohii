@@ -12,6 +12,27 @@
   overflow: hidden;
 }
 
+.clickable {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.clickable:hover {
+  border-color: var(--tone);
+  box-shadow: 0 8px 20px rgba(31, 23, 18, 0.1);
+  transform: translateY(-1px);
+}
+
+.clickable:focus-visible {
+  outline: 2px solid var(--espresso);
+  outline-offset: 2px;
+}
+
 /* Kulay ng bawat uri ng card, mga mahinang tono na bagay sa espresso/cream */
 .sales { --tone: #1f1712; --tone-soft: #ece2d6; }
 .orders { --tone: #8a5a3c; --tone-soft: #f3e4d8; }

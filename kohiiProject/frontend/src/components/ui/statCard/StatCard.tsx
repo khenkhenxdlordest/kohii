@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import Icon from '../Icon/Icon';
 import styles from './StatCard.module.css';
 
@@ -53,13 +54,15 @@ interface StatCardProps {
   variant: StatCardVariant;
   /** Pagbabago sa porsiyento, hal. 12.5 o -3. Hindi ipapakita kapag wala */
   change?: number;
+  /** Kapag may route, magiging shortcut ang buong card papunta roon */
+  to?: string;
 }
 
-function StatCard({ title, value, caption, variant, change }: StatCardProps) {
+function StatCard({ title, value, caption, variant, change, to }: StatCardProps) {
   const trend = change === undefined || change === 0 ? null : change > 0 ? 'up' : 'down';
 
-  return (
-    <article className={`${styles.card} ${styles[variant]}`}>
+  const content = (
+    <>
       <span className={styles.accent} aria-hidden="true" />
 
       <div className={styles.body}>
@@ -80,8 +83,18 @@ function StatCard({ title, value, caption, variant, change }: StatCardProps) {
           </span>
         )}
       </div>
-    </article>
+    </>
   );
+
+  if (to) {
+    return (
+      <Link to={to} className={`${styles.card} ${styles[variant]} ${styles.clickable}`}>
+        {content}
+      </Link>
+    );
+  }
+
+  return <article className={`${styles.card} ${styles[variant]}`}>{content}</article>;
 }
 
 export default StatCard;

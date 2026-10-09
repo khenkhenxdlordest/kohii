@@ -1,8 +1,10 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { verifyPassword } from '../common/utils/password.js';
+import { toAuditJson } from '../common/utils/audit.js';
 import type { JwtPayload } from './jwt-payload.js';
+import type { UpdateProfileDto } from './dto/update-profile.dto.js';
 
 const userSelect = {
   id: true,
@@ -12,7 +14,9 @@ const userSelect = {
   position: true,
   shift: true,
   mustChangePassword: true,
-  profile: { select: { firstName: true, lastName: true } },
+  profile: {
+    select: { firstName: true, middleName: true, lastName: true, contactNo: true, email: true, photoUrl: true },
+  },
   store: { select: { code: true, name: true } },
 } as const;
 
@@ -62,5 +66,44 @@ export class AuthService {
     });
     if (!user) throw new UnauthorizedException('Account not found or deactivated.');
     return user;
+  }
+
+  /** Sariling profile lang; walang role, job o login na kasama rito */
+  async updateProfile(userId: number, input: UpdateProfileDto) {
+    const before = await this.prisma.userProfile.findUnique({ where: { userId } });
+    if (!before) throw new NotFoundException('Profile not found.');
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.userProfile.update({
+        where: { userId },
+        data: {
+          firstName: input.firstName,
+          middleName: input.middleName,
+          lastName: input.lastName,
+          contactNo: input.contactNo,
+          email: input.email,
+        },
+      });
+      await tx.auditLog.create({
+        data: {
+          userId,
+          action: 'PROFILE_UPDATE',
+          entity: 'UserProfile',
+          entityId: String(userId),
+          before: toAuditJson(before),
+        },
+      });
+    });
+
+    return this.me(userId);
+  }
+
+  /** Nag-iisang photoUrl bawat user; pinapalitan ang dating larawan */
+  async updatePhoto(userId: number, photoUrl: string) {
+    const before = await this.prisma.userProfile.findUnique({ where: { userId }, select: { photoUrl: true } });
+    if (!before) throw new NotFoundException('Profile not found.');
+
+    await this.prisma.userProfile.update({ where: { userId }, data: { photoUrl } });
+    return this.me(userId);
   }
 }

@@ -10,9 +10,16 @@ import { getEmployees } from '../../../api/employees.api';
 import type { Employee, StaffPosition, Store } from '../../../types';
 import { positionLabels, positionOrder, shiftLabels } from '../../../utils/roles';
 
+import StoreSalesModal from '../../../components/modal/admin/StoresPage/StoreSalesModal/StoreSalesModal';
+import { getStoreSales } from '../../../utils/mockDashboard';
+
 import userPlusIcon from '../../../assets/icons/actions/user-plus.svg';
 import editIcon from '../../../assets/icons/actions/edit.svg';
 import moveIcon from '../../../assets/icons/sidebar/stock-movements.svg';
+import salesIcon from '../../../assets/icons/cards/sales.svg';
+import ordersIcon from '../../../assets/icons/cards/orders.svg';
+import searchIcon from '../../../assets/icons/actions/search.svg';
+import Icon from '../../../components/ui/Icon/Icon';
 
 const fullName = (u: Employee) =>
   u.profile ? `${u.profile.firstName} ${u.profile.lastName}` : (u.username ?? 'Employee');
@@ -25,6 +32,7 @@ function StoresPage() {
   const [loadError, setLoadError] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
   const [deploy, setDeploy] = useState<DeployState>(null);
+  const [salesView, setSalesView] = useState<Store | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [actionError, setActionError] = useState('');
   const [notice, setNotice] = useState('');
@@ -186,6 +194,7 @@ function StoresPage() {
         <div className={styles.stores}>
           {stores.map((store, index) => {
             const storeStaff = staff.filter((u) => u.storeId === store.id);
+            const sales = getStoreSales(store.code);
             return (
               <section
                 key={store.id}
@@ -205,6 +214,28 @@ function StoresPage() {
                       </span>
                     </p>
                   </div>
+
+                  <button
+                    type="button"
+                    className={styles.salesCard}
+                    onClick={() => setSalesView(store)}
+                  >
+                    <span className={styles.salesIconChip}>
+                      <Icon src={salesIcon} size={17} />
+                    </span>
+                    <span className={styles.salesBody}>
+                      <span className={styles.salesLabel}>Today's sales</span>
+                      <span className={styles.salesValue}>₱{sales.sales.toLocaleString()}</span>
+                      <span className={styles.salesCaption}>
+                        <Icon src={ordersIcon} size={12} />
+                        {sales.orders} orders · Sample data
+                      </span>
+                    </span>
+                    <span className={styles.salesView}>
+                      <Icon src={searchIcon} size={15} />
+                      View
+                    </span>
+                  </button>
 
                   <div className={styles.counts}>
                     {positionOrder
@@ -249,6 +280,10 @@ function StoresPage() {
             setDeploy(null);
           }}
         />
+      )}
+
+      {salesView && (
+        <StoreSalesModal store={salesView} data={getStoreSales(salesView.code)} onClose={() => setSalesView(null)} />
       )}
     </section>
   );

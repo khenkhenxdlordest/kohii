@@ -61,3 +61,7 @@ export function requireEnum<T extends string>(value: unknown, allowed: readonly 
   }
   return value as T;
 }
+
+/** null sa body = burahin; undefined = huwag galawin */
+export const nullable = <T>(value: unknown, parse: (v: unknown) => T | undefined): T | null | undefined =>
+  value === undefined ? undefined : value === null || value === '' ? null : parse(value);

@@ -143,7 +143,7 @@ export class ProductsService {
   // Hindi kasama ang presyo dito; gamitin ang changePrice para may history
   async update(
     id: number,
-    data: { name?: string; categoryId?: number; type?: ProductType; isActive?: boolean },
+    data: { name?: string; categoryId?: number; type?: ProductType; isActive?: boolean; imageUrl?: string },
     userId: number,
   ) {
     const newCategory = data.categoryId ? await this.assertCategoryActive(data.categoryId) : null;

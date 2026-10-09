@@ -22,7 +22,14 @@ export interface AuthUser {
   position: StaffPosition | null;
   shift: StaffShift | null;
   mustChangePassword: boolean;
-  profile: { firstName: string; lastName: string } | null;
+  profile: {
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+    contactNo: string | null;
+    email: string | null;
+    photoUrl: string | null;
+  } | null;
   store: { code: string; name: string } | null;
 }
 
@@ -165,4 +172,20 @@ export interface EmergencySummary {
   since: string;
   count: number;
   totalCost: number;
+}
+
+// ── Audit log ──
+
+export type AuditTone = 'create' | 'update' | 'remove' | 'price';
+
+export interface AuditLogEntry {
+  id: number;
+  action: string;
+  label: string;
+  tone: AuditTone;
+  entity: string;
+  subject: string;
+  change: string;
+  actor: string;
+  createdAt: string;
 }

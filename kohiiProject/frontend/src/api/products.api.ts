@@ -40,6 +40,26 @@ export function updateProduct(
   return apiRequest<Product>(`/products/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
 }
 
+// Multipart upload; hindi gamit ang apiRequest dahil hindi JSON ang body
+export async function uploadProductImage(id: number, file: File): Promise<Product> {
+  const token = localStorage.getItem('accessToken');
+  const body = new FormData();
+  body.append('image', file);
+
+  const response = await fetch(`/api/products/${id}/image`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    body,
+  });
+
+  const data = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message = Array.isArray(data?.message) ? data.message[0] : data?.message;
+    throw new Error(message ?? 'Could not upload the image.');
+  }
+  return data as Product;
+}
+
 /** Itinatakda o idinadagdag ang presyo ng isang size; ang price = null ay pagtanggal */
 export function changeProductPrice(id: number, size: ProductSize, price: number | null, reason?: string) {
   return apiRequest<Product>(`/products/${id}/price`, {

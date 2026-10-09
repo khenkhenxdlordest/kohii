@@ -30,6 +30,9 @@ coverage
 .tmp
 *.tsbuildinfo
 
+# Uploaded files
+uploads
+
 # Editor / OS
 .vscode/*
 !.vscode/extensions.json

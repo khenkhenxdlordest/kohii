@@ -1,1 +1,226 @@
-/* Styles para sa SalesReportsPage */
+.page {
+  padding-bottom: 40px;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.title {
+  margin: 0;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 30px;
+  font-weight: 400;
+  color: var(--espresso);
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* Pansamantala habang wala pang POS at /api/reports (Phase 3 at 6) */
+.sampleNote {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f6ead0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8a5f12;
+}
+
+.summaryBar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.summaryChip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 120px;
+  padding: 10px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.summaryLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.summaryValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--espresso);
+  font-variant-numeric: tabular-nums;
+}
+
+.dailyPanel {
+  margin-bottom: 14px;
+  padding: 16px 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.dailyTitle {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  margin-bottom: 8px;
+  background: var(--cream);
+  box-shadow: 0 10px 12px -12px rgba(31, 23, 18, 0.25);
+}
+
+.search {
+  flex: 1 1 260px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.search:focus-within {
+  border-color: var(--espresso);
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.segmented {
+  display: inline-flex;
+  height: 42px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.segmented button {
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.segmented button:focus-visible {
+  outline: 2px solid var(--espresso);
+}
+
+.segmented .segmentActive {
+  background: var(--espresso);
+  color: var(--cream);
+}
+
+.exportButton {
+  margin-left: auto;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.storeTag {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.storeCode {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--cream);
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.paymentTag {
+  display: inline-flex;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.paymentTag.Cash {
+  background: #dcebe5;
+  color: #2f6b4f;
+}
+
+.paymentTag.GCash {
+  background: #e4e9f6;
+  color: #3f558a;
+}
+
+.discountTag {
+  display: inline-flex;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #f6ead0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8a5f12;
+}
+
+.muted {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.total {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--espresso);
+  font-variant-numeric: tabular-nums;
+}

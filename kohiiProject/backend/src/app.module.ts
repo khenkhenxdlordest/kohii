@@ -14,11 +14,14 @@ import { InventoryModule } from './inventory/inventory.module.js';
 import { OrdersModule } from './orders/orders.module.js';
 import { ReportsModule } from './reports/reports.module.js';
 import { DashboardModule } from './dashboard/dashboard.module.js';
+import { AuditLogModule } from './audit-log/audit-log.module.js';
+import { RealtimeModule } from './realtime/realtime.module.js';
 
 @Module({
   imports: [
     PrismaModule,
     AuthModule,
+    RealtimeModule,
     UsersModule,
     StoresModule,
     CategoriesModule,
@@ -29,6 +32,7 @@ import { DashboardModule } from './dashboard/dashboard.module.js';
     OrdersModule,
     ReportsModule,
     DashboardModule,
+    AuditLogModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],

@@ -1,9 +1,9 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import Modal from '../../../Modal/Modal';
 import Button from '../../../../ui/Button/Button';
 import styles from './ProductFormModal.module.css';
 
-import { createProduct, updateProduct } from '../../../../../api/products.api';
+import { createProduct, updateProduct, uploadProductImage } from '../../../../../api/products.api';
 import type { Category, Product, ProductSize, ProductType } from '../../../../../types';
 import { categoryGroupLabels, categoryGroupOrder } from '../../../../../utils/categoryGroups';
 import { sizeLabels, sizeOunces, sizesFor } from '../../../../../utils/productSizes';
@@ -37,6 +37,44 @@ function ProductFormModal({ product, categories, defaultCategoryId, onClose, onS
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // Larawan: tinatanggal ang background sa browser bago i-preview at i-save
+  const [imagePreview, setImagePreview] = useState<string | null>(product?.imageUrl ?? null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [removingBg, setRemovingBg] = useState(false);
+  const [bgProgress, setBgProgress] = useState<number | null>(null);
+  const [imageError, setImageError] = useState('');
+
+  useEffect(() => {
+    return () => {
+      if (imageFile && imagePreview) URL.revokeObjectURL(imagePreview);
+    };
+  }, [imageFile, imagePreview]);
+
+  const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const picked = e.target.files?.[0];
+    e.target.value = '';
+    if (!picked) return;
+    setImageError('');
+    setRemovingBg(true);
+    setBgProgress(0);
+    try {
+      const { removeBackground } = await import('@imgly/background-removal');
+      const blob = await removeBackground(picked, {
+        // Mas maliit na model para mas mabilis ang unang download sa browser
+        model: 'isnet_quint8',
+        progress: (_key, current, total) => setBgProgress(total ? Math.round((current / total) * 100) : null),
+      });
+      const file = new File([blob], `${picked.name.replace(/\.[^.]+$/, '')}.png`, { type: 'image/png' });
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    } catch {
+      setImageError('Could not remove the background. Please check your connection and try again.');
+    } finally {
+      setRemovingBg(false);
+      setBgProgress(null);
+    }
+  };
+
   const selectedGroup = activeCategories.find((c) => c.id === Number(categoryId))?.group;
   const isDrink = selectedGroup === 'DRINKS';
   const sizes = selectedGroup ? sizesFor(selectedGroup) : [];
@@ -53,9 +91,10 @@ function ProductFormModal({ product, categories, defaultCategoryId, onClose, onS
     }
     setSaving(true);
     try {
-      const saved = isEdit
+      let saved = isEdit
         ? await updateProduct(product.id, { name, categoryId: Number(categoryId), type })
         : await createProduct({ name, categoryId: Number(categoryId), type, prices: entered });
+      if (imageFile) saved = await uploadProductImage(saved.id, imageFile);
       onSaved(saved);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save the product.');
@@ -104,6 +143,36 @@ function ProductFormModal({ product, categories, defaultCategoryId, onClose, onS
             autoFocus
             required
           />
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="product-image">
+            Photo
+          </label>
+          <div className={styles.imagePicker}>
+            <div className={styles.imagePreview}>
+              {imagePreview ? (
+                <img src={imagePreview} alt="" />
+              ) : (
+                <span className={styles.imagePlaceholder}>No photo</span>
+              )}
+            </div>
+            <label className={styles.imageButton}>
+              {removingBg
+                ? `Removing background${bgProgress !== null ? ` (${bgProgress}%)` : '…'}`
+                : imagePreview
+                  ? 'Change photo'
+                  : 'Add photo'}
+              <input
+                id="product-image"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                disabled={removingBg}
+              />
+            </label>
+          </div>
+          {imageError && <p className={styles.warning}>{imageError}</p>}
         </div>
 
         <div className={styles.field}>

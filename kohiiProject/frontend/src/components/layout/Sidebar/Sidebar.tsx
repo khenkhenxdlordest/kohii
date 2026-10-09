@@ -3,6 +3,7 @@ import styles from './Sidebar.module.css';
 
 import { useAuth } from '../../../hooks/useAuth';
 import Icon from '../../ui/Icon/Icon';
+import UserAvatar from '../../ui/UserAvatar/UserAvatar';
 import { jobLabel } from '../../../utils/roles';
 
 import { Mascot } from 'page-mascot';
@@ -12,7 +13,6 @@ import foxDirections from '../../../assets/images/mascot/fox-directions.webp';
 import foxReactions from '../../../assets/images/mascot/fox-reactions.webp';
 import catDirections from '../../../assets/images/mascot/cat-directions.webp';
 import catReactions from '../../../assets/images/mascot/cat-reactions.webp';
-import profileIcon from '../../../assets/icons/sidebar/profile.svg';
 import logoutIcon from '../../../assets/icons/sidebar/logout.svg';
 
 export interface NavItem {
@@ -80,9 +80,11 @@ function Sidebar({ sections, profilePath }: { sections: NavSection[]; profilePat
             `${styles.profileLink} ${isActive ? styles.profileLinkActive : ''}`
           }
         >
-          <span className={styles.avatar}>
-            <Icon src={profileIcon} size={19} />
-          </span>
+          <UserAvatar
+            name={user?.profile ? `${user.profile.firstName} ${user.profile.lastName}` : user?.username ?? ''}
+            photoUrl={user?.profile?.photoUrl}
+            size={36}
+          />
           <span className={styles.profileText}>
             <span className={styles.profileName}>
               {user?.profile ? `${user.profile.firstName} ${user.profile.lastName}` : user?.username}

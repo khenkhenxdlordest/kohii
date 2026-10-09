@@ -1,1 +1,221 @@
-/* Styles para sa InventoryReportsPage */
+.page {
+  padding-bottom: 40px;
+}
+
+.header {
+  margin-bottom: 14px;
+}
+
+.title {
+  margin: 0;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 30px;
+  font-weight: 400;
+  color: var(--espresso);
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.state {
+  padding: 24px 0;
+  color: var(--muted);
+}
+
+.wastePanel {
+  margin-bottom: 16px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.panelTitle {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.panelText {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.wasteGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.wasteCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.wasteCause {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.wasteCount {
+  font-size: 22px;
+  font-weight: 700;
+  color: #9b2c2c;
+  font-variant-numeric: tabular-nums;
+}
+
+.wasteCost {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  margin-bottom: 8px;
+  background: var(--cream);
+  box-shadow: 0 10px 12px -12px rgba(31, 23, 18, 0.25);
+}
+
+.search {
+  flex: 1 1 260px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.search:focus-within {
+  border-color: var(--espresso);
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  height: auto;
+  min-height: 42px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.segmented button {
+  height: 36px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.segmented button:focus-visible {
+  outline: 2px solid var(--espresso);
+}
+
+.segmented .segmentActive {
+  background: var(--espresso);
+  color: var(--cream);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.typeTag {
+  display: inline-flex;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.typeTag.STOCK_IN,
+.typeTag.VOID_RETURN {
+  background: #dcebe5;
+  color: #2f6b4f;
+}
+
+.typeTag.WITHDRAW,
+.typeTag.SALE {
+  background: var(--cream);
+  color: var(--espresso);
+}
+
+.typeTag.WASTE {
+  background: #f6dddb;
+  color: #9b2c2c;
+}
+
+.typeTag.AUDIT_ADJUST {
+  background: #f6ead0;
+  color: #8a5f12;
+}
+
+.qtyIn {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2f6b4f;
+  font-variant-numeric: tabular-nums;
+}
+
+.qtyOut {
+  font-size: 13px;
+  font-weight: 700;
+  color: #9b2c2c;
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.note {
+  font-size: 13px;
+  color: var(--ink-soft);
+}

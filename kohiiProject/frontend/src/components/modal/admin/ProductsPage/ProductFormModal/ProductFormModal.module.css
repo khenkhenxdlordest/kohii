@@ -107,6 +107,59 @@
   color: #9b2c2c;
 }
 
+.imagePicker {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.imagePreview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background-image:
+    linear-gradient(45deg, #e5e0da 25%, transparent 25%), linear-gradient(-45deg, #e5e0da 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #e5e0da 75%), linear-gradient(-45deg, transparent 75%, #e5e0da 75%);
+  background-size: 16px 16px;
+  background-position:
+    0 0,
+    0 8px,
+    8px -8px,
+    -8px 0;
+  overflow: hidden;
+}
+
+.imagePreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.imagePlaceholder {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.imageButton {
+  padding: 10px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.imageButton input {
+  display: none;
+}
+
 .priceRow {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));

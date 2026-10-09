@@ -31,8 +31,8 @@ function initials(name: string) {
     .join('');
 }
 
-/** Bilog na may initials; lalabas ang buong pangalan kapag tinapatan nang sandali */
-function UserAvatar({ name, size = 34 }: { name: string; size?: number }) {
+/** Bilog na may larawan (kung may photoUrl) o initials; lalabas ang buong pangalan kapag tinapatan nang sandali */
+function UserAvatar({ name, photoUrl, size = 34 }: { name: string; photoUrl?: string | null; size?: number }) {
   const { bg, fg } = PALETTE[hashName(name) % PALETTE.length];
   const [tooltip, setTooltip] = useState<'hidden' | 'shown' | 'leaving'>('hidden');
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -57,11 +57,15 @@ function UserAvatar({ name, size = 34 }: { name: string; size?: number }) {
     <span className={styles.wrap} onMouseEnter={show} onMouseLeave={hide} onFocus={show} onBlur={hide} tabIndex={0}>
       <span
         className={styles.avatar}
-        style={{ width: size, height: size, fontSize: Math.round(size * 0.36), background: bg, color: fg }}
+        style={
+          photoUrl
+            ? { width: size, height: size }
+            : { width: size, height: size, fontSize: Math.round(size * 0.36), background: bg, color: fg }
+        }
         aria-label={name}
         role="img"
       >
-        {initials(name)}
+        {photoUrl ? <img className={styles.photo} src={photoUrl} alt="" /> : initials(name)}
       </span>
       {tooltip !== 'hidden' && (
         <span className={`${styles.tooltip} ${tooltip === 'leaving' ? styles.leaving : ''}`} role="tooltip">

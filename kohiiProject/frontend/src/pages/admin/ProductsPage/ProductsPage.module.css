@@ -348,6 +348,36 @@
 }
 
 /* ── Laman ng table ── */
+.nameCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.thumb {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  object-fit: contain;
+  background: var(--cream);
+  cursor: pointer;
+}
+
+.hoverPreview {
+  position: fixed;
+  z-index: 50;
+  width: 160px;
+  height: 160px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 12px 28px rgba(31, 23, 18, 0.18);
+  object-fit: contain;
+  pointer-events: none;
+}
+
 .name {
   display: block;
   font-weight: 600;

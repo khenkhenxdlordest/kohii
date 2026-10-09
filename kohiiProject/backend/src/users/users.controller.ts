@@ -8,7 +8,7 @@ import type { AuthRequest } from '../auth/jwt-payload.js';
 import { Role } from '../common/enums/role.enum.js';
 import { StaffShift } from '../generated/prisma/client.js';
 import { JOBS } from './employee-job.js';
-import { optionalBoolean, optionalString, requireEnum, requireId, requireString } from '../common/utils/validation.js';
+import { nullable, optionalBoolean, optionalString, requireEnum, requireId, requireString } from '../common/utils/validation.js';
 
 const shifts = Object.values(StaffShift);
 
@@ -35,10 +35,6 @@ function optionalEmail(value: unknown) {
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new BadRequestException('Please enter a valid email.');
   return email?.toLowerCase();
 }
-
-/** null sa body = burahin; undefined = huwag galawin */
-const nullable = <T>(value: unknown, parse: (v: unknown) => T | undefined): T | null | undefined =>
-  value === undefined ? undefined : value === null || value === '' ? null : parse(value);
 
 // Employees: lahat ng tauhan. Owner, clerk at cashier lang ang may login; ang barista at kitchen ay wala.
 // Owner (ADMIN) lang ang may access.

@@ -5,6 +5,7 @@ import type {
   InventoryUnit,
   StockInSource,
   StockMovement,
+  StockMovementType,
   WasteCause,
 } from '../types';
 import { apiRequest } from './client';
@@ -79,9 +80,13 @@ export function logWaste(id: number, data: WasteInput) {
   return apiRequest<StockResult>(`/inventory/items/${id}/waste`, { method: 'POST', body: JSON.stringify(data) });
 }
 
-export function getMovements(filters: { itemId?: number; limit?: number } = {}) {
+export function getMovements(
+  filters: { itemId?: number; type?: StockMovementType; storeId?: number; limit?: number } = {},
+) {
   const params = new URLSearchParams();
   if (filters.itemId) params.set('itemId', String(filters.itemId));
+  if (filters.type) params.set('type', filters.type);
+  if (filters.storeId) params.set('storeId', String(filters.storeId));
   if (filters.limit) params.set('limit', String(filters.limit));
   const query = params.toString();
   return apiRequest<StockMovement[]>(`/inventory/movements${query ? `?${query}` : ''}`);
