@@ -16,6 +16,9 @@
 | Soft delete | Ginagamit ang `isActive = false` sa halip na `delete` |
 | Lahat ng API ay nagsisimula sa `/api` | Ipinapasa ito ng Vite proxy sa `localhost:3000` |
 | Bago mag-commit | Dapat pumasa ang `npm run build` sa backend at frontend |
+| **Bawal ang emoji sa UI** | Lahat ng icon ay **SVG** na nakalagay sa `frontend/src/assets/icons/`. Walang emoji sa pages, buttons, labels o messages |
+| Images at logo sa `assets/` | Ang mga larawan ay nasa `assets/images/`, at ang logo ay nasa `assets/logo/` (SVG hangga't maaari). Bawal ang direktang link sa larawang nasa labas ng project |
+| Hiwalay na dashboard bawat role | May sariling dashboard, layout at routes ang Admin (owner), Clerk at Cashier. Hindi sila naghahati sa iisang dashboard page |
 
 **Default accounts (seed):** `admin`, `clerk`, `cashier.b1`, `cashier.b2`. Password: `kohii123`
 
@@ -62,7 +65,7 @@ pages/
                 ProductPerformance
   clerk/      ← Dashboard, StoreInventory, StockIn, StockAdjustment,
                 LowStock, StockMovements
-  cashier/    ← Pos, Orders, DailySales
+  cashier/    ← Dashboard, Pos, Orders, DailySales
   shared/     ← NotFound, Unauthorized, Profile
 assets/       ← icons/, logo/, images/ (SVG)
 ```
@@ -84,6 +87,7 @@ Bawat phase: **backend endpoint → frontend page → test sa browser → commit
 ### Phase 1 — Auth & Layouts
 **Backend:** `POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/change-password`, JWT guard, `@Roles()` + RolesGuard
 **Frontend:** LoginPage, AuthContext, ProtectedRoute/RoleRoute, 3 layouts + sidebar ayon sa role, redirect pagka-login (admin → `/admin`, clerk → `/clerk`, cashier → `/cashier`)
+**Login page design:** pulido at pang-presentation na itsura, batay sa reference design na pipiliin ng team. Ang mga images ay nasa `assets/images/` at ang mga icon (user, password, show/hide, atbp.) ay SVG sa `assets/icons/`. Walang emoji
 **Kailangang i-install:** `@nestjs/jwt`, `react-router-dom`
 **Tapos na kapag:** nakakapag-login ang bawat role at hindi nila mabuksan ang page ng ibang role
 

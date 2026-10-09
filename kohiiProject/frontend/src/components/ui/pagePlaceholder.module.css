@@ -1,0 +1,24 @@
+.title {
+  margin: 0;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 32px;
+  font-weight: 400;
+  color: var(--espresso);
+}
+
+.description {
+  margin: 4px 0 24px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.empty {
+  display: grid;
+  place-items: center;
+  min-height: 280px;
+  border: 1.5px dashed var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  font-size: 14px;
+  color: var(--muted);
+}
