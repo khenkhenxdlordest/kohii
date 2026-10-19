@@ -1,1 +1,34 @@
-/* Styles para sa PosPage */
+.page {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  height: 100%;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.title {
+  margin: 0;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--espresso);
+}
+
+.grid {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 8px;
+}
+
+.state {
+  margin: 48px 0;
+  text-align: center;
+  color: var(--muted);
+}

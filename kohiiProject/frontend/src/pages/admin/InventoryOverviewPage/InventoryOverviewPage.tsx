@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useRealtime } from '../../../hooks/useRealtime';
 import styles from './InventoryOverviewPage.module.css';
 
 import Button from '../../../components/ui/Button/Button';
@@ -33,6 +34,7 @@ const statusLabels: Record<StockStatus, string> = { OK: 'In stock', LOW: 'Low', 
 const statusRank: Record<StockStatus, number> = { OUT: 0, LOW: 1, OK: 2 };
 
 function InventoryOverviewPage() {
+  const { socket } = useRealtime();
   const [items, setItems] = useState<InventoryItem[] | null>(null);
   const [emergency, setEmergency] = useState<EmergencySummary | null>(null);
   const [loadError, setLoadError] = useState('');
@@ -64,6 +66,18 @@ function InventoryOverviewPage() {
       ignore = true;
     };
   }, [reloadKey]);
+
+  useEffect(() => {
+    if (!socket) return;
+    // Centralized ang inventory: i-refresh ang listahan kapag may stock update sa ibang device
+    const refresh = () => setReloadKey((k) => k + 1);
+    socket.on('stock:updated', refresh);
+    socket.on('stock:low', refresh);
+    return () => {
+      socket.off('stock:updated', refresh);
+      socket.off('stock:low', refresh);
+    };
+  }, [socket]);
 
   useEffect(() => {
     if (!notice) return;

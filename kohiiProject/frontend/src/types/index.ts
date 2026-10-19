@@ -119,6 +119,11 @@ export interface Employee {
   } | null;
 }
 
+// ── Orders ──
+
+/** Nirerecord lang; walang online processing (gaya ng GCash/Maya/Bank Transfer) */
+export type PaymentMethod = 'CASH' | 'GCASH' | 'MAYA' | 'BANK_TRANSFER';
+
 // ── Inventory ──
 
 /** RAW_MATERIAL = coffee bar, MEAL = kitchen (Alley), PACKAGING = cups/lids/straw/tissue, SNACK = ready to serve */

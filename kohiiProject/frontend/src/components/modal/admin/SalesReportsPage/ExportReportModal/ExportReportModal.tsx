@@ -1,3 +1,4 @@
+import XLSX from 'xlsx-js-style';
 import Modal from '../../../Modal/Modal';
 import Button from '../../../../ui/Button/Button';
 import styles from './ExportReportModal.module.css';
@@ -9,14 +10,9 @@ import downloadIcon from '../../../../../assets/icons/sidebar/stock-in.svg';
 
 const PREVIEW_LIMIT = 8;
 
-function csvCell(value: string | number) {
-  const text = String(value);
-  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
-}
-
 const toDateInput = (date: Date) => date.toISOString().slice(0, 10);
 
-function downloadBlob(content: string, filename: string, type: string) {
+function downloadBlob(content: BlobPart, filename: string, type: string) {
   const blob = new Blob([content], { type });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -26,14 +22,58 @@ function downloadBlob(content: string, filename: string, type: string) {
   URL.revokeObjectURL(url);
 }
 
-function exportCsv(rows: MockSaleRow[]) {
+const HEADER_STYLE = {
+  font: { bold: true, color: { rgb: 'FFFCF8' } },
+  fill: { fgColor: { rgb: '1F1712' } },
+  alignment: { vertical: 'center' },
+};
+
+const TOTAL_STYLE = { font: { bold: true }, alignment: { horizontal: 'right' } };
+const RIGHT_ALIGN = { alignment: { horizontal: 'right' } };
+
+function exportXlsx(rows: MockSaleRow[], totalSum: number) {
   const header = ['Date & Time', 'Store', 'Cashier', 'Items', 'Payment', 'Discount', 'Total'];
-  const lines = rows.map((r) =>
-    [formatDateTime(r.dateTime), r.storeName, r.cashier, r.itemsCount, r.paymentMethod, r.discount, r.total]
-      .map(csvCell)
-      .join(','),
+  const body = rows.map((r) => [formatDateTime(r.dateTime), r.storeName, r.cashier, r.itemsCount, r.paymentMethod, r.discount, r.total]);
+
+  const sheetData = [header, ...body, ['', '', '', '', '', 'Total', totalSum]];
+  const sheet = XLSX.utils.aoa_to_sheet(sheetData);
+
+  sheet['!cols'] = [{ wch: 20 }, { wch: 12 }, { wch: 20 }, { wch: 8 }, { wch: 12 }, { wch: 14 }, { wch: 14 }];
+
+  for (let col = 0; col < header.length; col += 1) {
+    const cell = sheet[XLSX.utils.encode_cell({ r: 0, c: col })];
+    if (cell) cell.s = HEADER_STYLE;
+  }
+
+  const totalRow = body.length + 1;
+  for (let col = 0; col < header.length; col += 1) {
+    const ref = XLSX.utils.encode_cell({ r: totalRow, c: col });
+    const cell = sheet[ref];
+    if (cell) cell.s = col === 6 ? TOTAL_STYLE : { font: { bold: true } };
+  }
+
+  // Items column (right-align) at Total column (right-align, peso format)
+  for (let row = 1; row <= body.length; row += 1) {
+    const itemsCell = sheet[XLSX.utils.encode_cell({ r: row, c: 3 })];
+    if (itemsCell) itemsCell.s = RIGHT_ALIGN;
+    const totalCell = sheet[XLSX.utils.encode_cell({ r: row, c: 6 })];
+    if (totalCell) {
+      totalCell.z = '"₱"#,##0.00';
+      totalCell.s = RIGHT_ALIGN;
+    }
+  }
+  const totalSumCell = sheet[XLSX.utils.encode_cell({ r: totalRow, c: 6 })];
+  if (totalSumCell) totalSumCell.z = '"₱"#,##0.00';
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, sheet, 'Sales Report');
+
+  const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  downloadBlob(
+    buffer,
+    `sales-report-${toDateInput(new Date())}.xlsx`,
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   );
-  downloadBlob([header.join(','), ...lines].join('\n'), `sales-report-${toDateInput(new Date())}.csv`, 'text/csv');
 }
 
 // Window print → "Save as PDF" sa browser; walang dagdag na library
@@ -101,7 +141,7 @@ function ExportReportModal({ rows, rangeLabel, onClose }: ExportReportModalProps
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="secondary" onClick={() => exportCsv(rows)} disabled={rows.length === 0}>
+          <Button variant="secondary" onClick={() => exportXlsx(rows, totalSum)} disabled={rows.length === 0}>
             Download Excel
           </Button>
           <Button onClick={() => exportPdf(rows, totalSum)} disabled={rows.length === 0}>

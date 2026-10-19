@@ -1,0 +1,250 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  width: 340px;
+  flex: 0 0 340px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.title {
+  margin: 0;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--espresso);
+}
+
+.clear {
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.clear:hover {
+  color: #9b2c2c;
+}
+
+.empty {
+  margin: 0;
+  padding: 32px 18px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.list {
+  flex: 1;
+  list-style: none;
+  margin: 0;
+  padding: 8px;
+  overflow-y: auto;
+}
+
+.line {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.line:last-child {
+  border-bottom: none;
+}
+
+.lineIcon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--cream);
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 15px;
+  color: var(--espresso);
+}
+
+.lineInfo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.lineName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lineSize {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stepperButton {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--cream);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.stepperButton:hover {
+  border-color: var(--espresso);
+}
+
+.qty {
+  min-width: 18px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.lineTotal {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--espresso);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.remove {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.remove:hover {
+  color: #9b2c2c;
+}
+
+.footer {
+  padding: 14px 18px 18px;
+  border-top: 1px solid var(--line);
+}
+
+.subtotalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.subtotalValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--espresso);
+  font-variant-numeric: tabular-nums;
+}
+
+.checkout {
+  width: 100%;
+  justify-content: center;
+}
+
+.note {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.methodLabel {
+  margin: 4px 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.methods {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.methodButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+}
+
+.methodButton:hover:not(:disabled) {
+  border-color: var(--espresso);
+  color: var(--ink);
+}
+
+.methodButton:focus-visible {
+  outline: 2px solid var(--espresso);
+  outline-offset: 2px;
+}
+
+.methodButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.methodActive {
+  border-color: var(--espresso);
+  background: var(--cream);
+  color: var(--espresso);
+}
+
+.footerActions {
+  display: flex;
+  gap: 8px;
+}
+
+.resetButton,
+.continueButton {
+  flex: 1;
+  justify-content: center;
+}

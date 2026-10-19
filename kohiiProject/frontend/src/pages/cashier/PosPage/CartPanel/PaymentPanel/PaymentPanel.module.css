@@ -1,0 +1,156 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 18px 18px;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.back:hover {
+  color: var(--ink);
+}
+
+.backIcon {
+  transform: rotate(90deg);
+}
+
+.methodBadge {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--cream);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--espresso);
+}
+
+.fieldLabel {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.input {
+  width: 100%;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--espresso);
+}
+
+.cash,
+.reference {
+  display: flex;
+  flex-direction: column;
+}
+
+.quickCash {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.quickButton {
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--cream);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.quickButton:hover {
+  border-color: var(--espresso);
+}
+
+.changeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #dcebe5;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2f6b4f;
+}
+
+.changeShort {
+  background: #fbeceb;
+  color: #9b2c2c;
+}
+
+.changeValue {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.totalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.totalValue {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--espresso);
+  font-variant-numeric: tabular-nums;
+}
+
+.checkout {
+  width: 100%;
+  justify-content: center;
+}
+
+.note {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.readyNote {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-align: center;
+}

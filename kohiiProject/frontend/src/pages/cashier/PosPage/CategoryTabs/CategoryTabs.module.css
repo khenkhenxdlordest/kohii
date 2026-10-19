@@ -1,0 +1,41 @@
+.row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.card {
+  flex: 0 0 auto;
+  padding: 12px 22px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.card:hover {
+  border-color: var(--espresso);
+  color: var(--ink);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--espresso);
+  outline-offset: 2px;
+}
+
+.active {
+  border-color: var(--espresso);
+  background: var(--espresso);
+  color: var(--cream);
+}

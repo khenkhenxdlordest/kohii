@@ -176,11 +176,13 @@ Bawat phase: **backend endpoint → frontend page → test sa browser → commit
 **Frontend:** `socket.io-client`, isang `hooks/useRealtime.ts` o `context/RealtimeProvider.tsx` na kumokonekta gamit ang parehong JWT; ina-invalidate/ire-refresh ang kaukulang list (hal. Low Stock page, Inventory Overview) sa halip na full page reload.
 **Kailangang i-install:** `socket.io`, `@nestjs/websockets`, `@nestjs/platform-socket.io` (backend) · `socket.io-client` (frontend)
 **Tapos na kapag:** may stock-in sa isang device, nag-u-update agad ang Low Stock at Inventory Overview sa ibang open na device nang walang manual refresh
-- [ ] Gateway + JWT auth sa socket connection
-- [ ] `stock:updated` / `stock:low`
-- [ ] `order:created`
-- [ ] `shift:changed`
-- [ ] Frontend provider/hook + pag-subscribe sa mga apektadong page
+- [x] Gateway + JWT auth sa socket connection
+- [x] `stock:updated` / `stock:low`
+- [ ] `order:created` — naka-pending hanggang maimplement ang POS order creation (Orders module stub pa, walang `create()` method)
+- [ ] `shift:changed` — naka-pending hanggang magkaroon ng Shift feature
+- [x] Frontend provider/hook + pag-subscribe sa mga apektadong page (Inventory Overview; Low Stock page placeholder pa rin, isusubscribe din pag ginawa na)
+
+> Frontend foundation ready (`RealtimeProvider` + `useRealtime` hook, `socket.io-client` naka-connect gamit ang JWT). `order:created` at `shift:changed` na emit calls idadagdag sa `orders.service.ts` / shift service kapag naimplement na ang mga features na iyon.
 
 ### Phase 7 — 🔒 Final Defense Hardening
 - [ ] **I-on ang password hashing:** `PASSWORD_HASHING=true` sa `backend/.env`

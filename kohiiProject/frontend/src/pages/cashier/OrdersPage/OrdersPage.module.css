@@ -1,1 +1,120 @@
-/* Styles para sa OrdersPage */
+.page {
+  padding-bottom: 40px;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.title {
+  margin: 0;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 30px;
+  font-weight: 400;
+  color: var(--espresso);
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* Pansamantala habang wala pang Shift feature at /api/orders (Phase 6.5+) */
+.sampleNote {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f6ead0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8a5f12;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.search {
+  flex: 1 1 260px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.search:focus-within {
+  border-color: var(--espresso);
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.paymentTag {
+  display: inline-flex;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.paymentTag.Cash {
+  background: #dcebe5;
+  color: #2f6b4f;
+}
+
+.paymentTag.GCash {
+  background: #e4e9f6;
+  color: #3f558a;
+}
+
+.discountTag {
+  display: inline-flex;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #f6ead0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8a5f12;
+}
+
+.muted {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.total {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--espresso);
+  font-variant-numeric: tabular-nums;
+}

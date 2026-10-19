@@ -67,7 +67,9 @@ enum Unit {
 
 enum PaymentMethod {
   CASH
-  GCASH // recorded only, no online processing
+  GCASH
+  MAYA
+  BANK_TRANSFER // recorded only, no online processing
 }
 
 enum DiscountType {
