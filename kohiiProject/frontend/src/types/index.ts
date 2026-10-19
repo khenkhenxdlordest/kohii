@@ -124,6 +124,50 @@ export interface Employee {
 /** Nirerecord lang; walang online processing (gaya ng GCash/Maya/Bank Transfer) */
 export type PaymentMethod = 'CASH' | 'GCASH' | 'MAYA' | 'BANK_TRANSFER';
 
+/** SENIOR/PWD = legal na 20% (RA 9994 / RA 10754); CUSTOM = manual na % na ipapasok ng cashier */
+export type DiscountType = 'NONE' | 'SENIOR' | 'PWD' | 'CUSTOM';
+
+export interface OrderItem {
+  id: number;
+  productId: number;
+  productName: string;
+  size: ProductSize;
+  qty: number;
+  unitPrice: number;
+  lineTotal: number;
+}
+
+export interface Order {
+  id: number;
+  receiptNo: string;
+  storeId: number;
+  cashierId: number;
+  shiftId: number;
+  paymentMethod: PaymentMethod;
+  subtotal: number;
+  discountType: DiscountType;
+  discountAmount: number;
+  total: number;
+  amountTendered: number | null;
+  changeDue: number | null;
+  referenceNo: string | null;
+  createdAt: string;
+  items: OrderItem[];
+}
+
+export interface Shift {
+  id: number;
+  storeId: number;
+  cashierId: number;
+  status: 'OPEN' | 'CLOSED';
+  openingCash: number;
+  closingCash: number | null;
+  expectedCash: number | null;
+  openedAt: string;
+  closedAt: string | null;
+  note: string | null;
+}
+
 // ── Inventory ──
 
 /** RAW_MATERIAL = coffee bar, MEAL = kitchen (Alley), PACKAGING = cups/lids/straw/tissue, SNACK = ready to serve */

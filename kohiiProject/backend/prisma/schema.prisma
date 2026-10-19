@@ -76,6 +76,7 @@ enum DiscountType {
   NONE
   SENIOR
   PWD
+  CUSTOM
 }
 
 enum OrderStatus {
@@ -331,6 +332,9 @@ model Shift {
   cashier User    @relation(fields: [cashierId], references: [id])
   orders  Order[]
 
+  // Partial unique index (isang OPEN shift lang bawat cashier/store) ay idinagdag manual
+  // sa migration 20261019192853_add_unique_open_shift_per_cashier — hindi kaya i-express
+  // ng schema.prisma ang WHERE clause, kaya hindi lalabas dito, pero nasa DB na.
   @@index([storeId, openedAt])
   @@index([cashierId, status])
 }

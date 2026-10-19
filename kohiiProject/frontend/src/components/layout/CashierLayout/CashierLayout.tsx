@@ -1,6 +1,8 @@
 import { Outlet } from 'react-router-dom';
 import Navbar from '../Navbar/Navbar';
 import Sidebar, { type NavSection } from '../Sidebar/Sidebar';
+import ShiftBar from './ShiftBar/ShiftBar';
+import { ShiftProvider } from '../../../context/ShiftProvider';
 import styles from './CashierLayout.module.css';
 
 import dashboardIcon from '../../../assets/icons/sidebar/dashboard.svg';
@@ -29,7 +31,10 @@ function CashierLayout() {
       <Sidebar sections={cashierNav} profilePath="/cashier/profile" />
       <main className={styles.content}>
         <Navbar />
-        <Outlet />
+        <ShiftProvider>
+          <ShiftBar />
+          <Outlet />
+        </ShiftProvider>
       </main>
     </div>
   );

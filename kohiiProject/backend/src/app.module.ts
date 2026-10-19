@@ -11,6 +11,7 @@ import { ProductsModule } from './products/products.module.js';
 import { IngredientsModule } from './ingredients/ingredients.module.js';
 import { RecipesModule } from './recipes/recipes.module.js';
 import { InventoryModule } from './inventory/inventory.module.js';
+import { ShiftsModule } from './shifts/shifts.module.js';
 import { OrdersModule } from './orders/orders.module.js';
 import { ReportsModule } from './reports/reports.module.js';
 import { DashboardModule } from './dashboard/dashboard.module.js';
@@ -29,6 +30,7 @@ import { RealtimeModule } from './realtime/realtime.module.js';
     IngredientsModule,
     RecipesModule,
     InventoryModule,
+    ShiftsModule,
     OrdersModule,
     ReportsModule,
     DashboardModule,

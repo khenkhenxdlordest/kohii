@@ -178,11 +178,26 @@ Bawat phase: **backend endpoint → frontend page → test sa browser → commit
 **Tapos na kapag:** may stock-in sa isang device, nag-u-update agad ang Low Stock at Inventory Overview sa ibang open na device nang walang manual refresh
 - [x] Gateway + JWT auth sa socket connection
 - [x] `stock:updated` / `stock:low`
-- [ ] `order:created` — naka-pending hanggang maimplement ang POS order creation (Orders module stub pa, walang `create()` method)
-- [ ] `shift:changed` — naka-pending hanggang magkaroon ng Shift feature
+- [x] `order:created` — naka-wire na sa `OrdersService.create()`
+- [x] `shift:changed` — naka-wire na sa `ShiftsService.open()`/`close()`
 - [x] Frontend provider/hook + pag-subscribe sa mga apektadong page (Inventory Overview; Low Stock page placeholder pa rin, isusubscribe din pag ginawa na)
 
-> Frontend foundation ready (`RealtimeProvider` + `useRealtime` hook, `socket.io-client` naka-connect gamit ang JWT). `order:created` at `shift:changed` na emit calls idadagdag sa `orders.service.ts` / shift service kapag naimplement na ang mga features na iyon.
+> Frontend foundation ready (`RealtimeProvider` + `useRealtime` hook, `socket.io-client` naka-connect gamit ang JWT).
+
+### Phase 6.6 — Shift feature (Open/Close Shift)
+> Kailangan ng `Order` model ang `shiftId` (required FK), kaya ito muna ang ginawa bago ang Order creation — tinatanggal nito ang blocker sa checkout.
+**Backend:** bagong `backend/src/shifts/` module (`ShiftsController`/`ShiftsService`/`ShiftsModule`, naka-register sa `app.module.ts`). Endpoints: `GET /shifts/active`, `POST /shifts/open`, `POST /shifts/:id/close`. Naka-compute na nang tama ang `expectedCash` (`openingCash + SUM(orders.total)` sa `shiftId`).
+**Frontend:** `ShiftProvider`/`useShift` (parehong pattern ng `RealtimeProvider`), `OpenShiftModal`/`CloseShiftModal`, `ShiftBar` sa `CashierLayout` (status + Open/Close button), at ginagate na ang `PosPage` — hindi makakapag-order hangga't walang open shift.
+- [x] Backend: Open/Close shift endpoints + `expectedCash` computation
+- [x] Frontend: Shift gate sa POS, Open/Close Shift modals, status bar
+
+### Phase 6.7 — Order creation (checkout)
+> Ngayon pa lang talaga magagamit ang "Complete sale" sa POS — may `shiftId` na (Phase 6.6), may Cart na may items/discount/payment method.
+**Backend:** `POST /orders` (`OrdersController`/`OrdersService`) — hinahanap ang active shift, kinukuha ang totoong presyo mula sa DB (hindi titiwalaan ang presyong galing sa client), kino-compute ang discount (SENIOR/PWD palaging 20% server-side; `CUSTOM` enum idinagdag sa `DiscountType` para sa manual % na ipapasok ng cashier), tama ang pag-validate ng cash tendered/reference number, nagde-decrement ng stock base sa `RecipeItem` kung meron (laktawan kung wala pa — Recipes UI hindi pa ginawa), bumubuo ng `receiptNo` mula sa `Store.receiptCounter`.
+**Frontend:** `orders.api.ts`, naka-wire na ang `PaymentPanel`'s "Complete sale" button, may success state na may receipt number.
+- [x] Backend: `POST /orders` — presyo/discount/stock computation, receipt number
+- [x] Frontend: checkout wiring + success state
+- [ ] **Susunod:** `GET /orders` (listing) — para mapalitan na ng totoong data ang mock sa OrdersPage/DailySalesPage
 
 ### Phase 7 — 🔒 Final Defense Hardening
 - [ ] **I-on ang password hashing:** `PASSWORD_HASHING=true` sa `backend/.env`

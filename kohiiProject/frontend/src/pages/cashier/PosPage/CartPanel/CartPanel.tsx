@@ -3,20 +3,66 @@ import { useCart } from '../../../../hooks/useCart';
 import { formatPeso } from '../../../../utils/format';
 import { sizeLabels } from '../../../../utils/productSizes';
 import { paymentMethods } from '../../../../utils/paymentMethods';
-import type { PaymentMethod } from '../../../../types';
+import type { Order, PaymentMethod } from '../../../../types';
 import Button from '../../../../components/ui/Button/Button';
 import Icon from '../../../../components/ui/Icon/Icon';
 import PaymentPanel from './PaymentPanel/PaymentPanel';
+import DiscountModal from './DiscountModal/DiscountModal';
 import styles from './CartPanel.module.css';
 
 import plusIcon from '../../../../assets/icons/actions/plus.svg';
 import minusIcon from '../../../../assets/icons/actions/minus.svg';
 import closeIcon from '../../../../assets/icons/actions/close.svg';
+import discountIcon from '../../../../assets/icons/actions/discount.svg';
+
+const discountLabels: Record<string, string> = {
+  NONE: 'Discount',
+  SENIOR: 'Senior Citizen (20%)',
+  PWD: 'PWD (20%)',
+};
 
 function CartPanel() {
-  const { items, subtotal, incrementQty, decrementQty, removeItem, clearCart } = useCart();
-  const [view, setView] = useState<'cart' | 'payment'>('cart');
+  const {
+    items,
+    subtotal,
+    discountType,
+    discountPercent,
+    discountAmount,
+    total,
+    setDiscount,
+    incrementQty,
+    decrementQty,
+    removeItem,
+    clearCart,
+  } = useCart();
+  const [view, setView] = useState<'cart' | 'payment' | 'success'>('cart');
   const [method, setMethod] = useState<PaymentMethod | null>(null);
+  const [discountModalOpen, setDiscountModalOpen] = useState(false);
+  const [lastOrder, setLastOrder] = useState<Order | null>(null);
+
+  const handleComplete = (order: Order) => {
+    setLastOrder(order);
+    clearCart();
+    setMethod(null);
+    setView('success');
+  };
+
+  if (view === 'success' && lastOrder) {
+    return (
+      <aside className={styles.panel}>
+        <header className={styles.header}>
+          <h2 className={styles.title}>Sale complete</h2>
+        </header>
+        <div className={styles.success}>
+          <span className={styles.successReceipt}>{lastOrder.receiptNo}</span>
+          <span className={styles.successTotal}>{formatPeso(lastOrder.total)}</span>
+          <Button className={styles.checkout} onClick={() => setView('cart')}>
+            New order
+          </Button>
+        </div>
+      </aside>
+    );
+  }
 
   if (view === 'payment' && method) {
     return (
@@ -24,7 +70,7 @@ function CartPanel() {
         <header className={styles.header}>
           <h2 className={styles.title}>Payment</h2>
         </header>
-        <PaymentPanel total={subtotal} method={method} onBack={() => setView('cart')} />
+        <PaymentPanel total={total} method={method} onBack={() => setView('cart')} onComplete={handleComplete} />
       </aside>
     );
   }
@@ -93,7 +139,25 @@ function CartPanel() {
       <footer className={styles.footer}>
         <div className={styles.subtotalRow}>
           <span>Subtotal</span>
-          <span className={styles.subtotalValue}>{formatPeso(subtotal)}</span>
+          <span>{formatPeso(subtotal)}</span>
+        </div>
+
+        <button
+          type="button"
+          className={styles.discountRow}
+          disabled={items.length === 0}
+          onClick={() => setDiscountModalOpen(true)}
+        >
+          <span className={styles.discountLabel}>
+            <Icon src={discountIcon} size={16} />
+            {discountType === 'CUSTOM' ? `Custom (${discountPercent}%)` : discountLabels[discountType]}
+          </span>
+          <span>{discountAmount > 0 ? `− ${formatPeso(discountAmount)}` : 'Add'}</span>
+        </button>
+
+        <div className={styles.totalRow}>
+          <span>Total</span>
+          <span className={styles.subtotalValue}>{formatPeso(total)}</span>
         </div>
 
         <p className={styles.methodLabel}>Select payment method</p>
@@ -131,6 +195,16 @@ function CartPanel() {
           </Button>
         </div>
       </footer>
+
+      {discountModalOpen && (
+        <DiscountModal
+          subtotal={subtotal}
+          current={discountType}
+          currentPercent={discountPercent}
+          onClose={() => setDiscountModalOpen(false)}
+          onApply={setDiscount}
+        />
+      )}
     </aside>
   );
 }

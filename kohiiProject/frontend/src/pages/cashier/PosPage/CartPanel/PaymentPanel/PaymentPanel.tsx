@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
-import type { PaymentMethod } from '../../../../../types';
+import type { Order, PaymentMethod } from '../../../../../types';
 import { formatPeso } from '../../../../../utils/format';
 import { paymentMethods } from '../../../../../utils/paymentMethods';
+import { createOrder } from '../../../../../api/orders.api';
+import { useCart } from '../../../../../hooks/useCart';
 import Button from '../../../../../components/ui/Button/Button';
 import Icon from '../../../../../components/ui/Icon/Icon';
 import styles from './PaymentPanel.module.css';
@@ -14,11 +16,15 @@ interface PaymentPanelProps {
   total: number;
   method: PaymentMethod;
   onBack: () => void;
+  onComplete: (order: Order) => void;
 }
 
-function PaymentPanel({ total, method, onBack }: PaymentPanelProps) {
+function PaymentPanel({ total, method, onBack, onComplete }: PaymentPanelProps) {
+  const { items, discountType, discountPercent } = useCart();
   const [tendered, setTendered] = useState('');
   const [referenceNo, setReferenceNo] = useState('');
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const tenderedAmount = Number(tendered) || 0;
   const change = tenderedAmount - total;
@@ -29,6 +35,26 @@ function PaymentPanel({ total, method, onBack }: PaymentPanelProps) {
     if (isCash) return tenderedAmount >= total;
     return referenceNo.trim().length > 0;
   }, [isCash, tenderedAmount, total, referenceNo]);
+
+  const handleComplete = async () => {
+    if (!canComplete) return;
+    setError('');
+    setSaving(true);
+    try {
+      const order = await createOrder({
+        items: items.map((i) => ({ productId: i.productId, size: i.size, qty: i.qty })),
+        paymentMethod: method,
+        discountType,
+        discountPercent: discountType === 'CUSTOM' ? discountPercent : undefined,
+        amountTendered: isCash ? tenderedAmount : undefined,
+        referenceNo: isCash ? undefined : referenceNo.trim(),
+      });
+      onComplete(order);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not complete the sale.');
+      setSaving(false);
+    }
+  };
 
   return (
     <div className={styles.panel}>
@@ -102,14 +128,15 @@ function PaymentPanel({ total, method, onBack }: PaymentPanelProps) {
         <span className={styles.totalValue}>{formatPeso(total)}</span>
       </div>
 
-      <p className={styles.readyNote}>
-        {canComplete ? 'Ready to complete once checkout is available.' : isCash ? 'Enter a tendered amount to cover the total.' : 'Enter a reference number to continue.'}
-      </p>
+      {error && (
+        <p className={styles.error} role="alert">
+          {error}
+        </p>
+      )}
 
-      <Button className={styles.checkout} disabled title="Coming soon — needs an open shift">
+      <Button className={styles.checkout} disabled={!canComplete || saving} loading={saving} onClick={handleComplete}>
         Complete sale
       </Button>
-      <p className={styles.note}>Checkout is coming soon — needs the Shift feature first.</p>
     </div>
   );
 }
