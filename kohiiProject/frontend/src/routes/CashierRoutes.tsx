@@ -6,6 +6,7 @@ import CashierDashboardPage from '../pages/cashier/CashierDashboardPage/CashierD
 import PosPage from '../pages/cashier/PosPage/PosPage';
 import OrdersPage from '../pages/cashier/OrdersPage/OrdersPage';
 import DailySalesPage from '../pages/cashier/DailySalesPage/DailySalesPage';
+import KitchenQueuePage from '../pages/cashier/KitchenQueuePage/KitchenQueuePage';
 import ProfilePage from '../pages/shared/ProfilePage/ProfilePage';
 
 const CashierRoutes = (
@@ -15,6 +16,7 @@ const CashierRoutes = (
       <Route path="pos" element={<PosPage />} />
       <Route path="orders" element={<OrdersPage />} />
       <Route path="daily-sales" element={<DailySalesPage />} />
+      <Route path="kitchen" element={<KitchenQueuePage />} />
       <Route path="profile" element={<ProfilePage />} />
     </Route>
   </Route>

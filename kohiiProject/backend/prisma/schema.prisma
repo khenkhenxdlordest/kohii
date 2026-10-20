@@ -381,11 +381,20 @@ model OrderItem {
   qty         Int
   unitPrice   Decimal     @db.Decimal(10, 2) // price at time of sale
   lineTotal   Decimal     @db.Decimal(10, 2)
+  remarks     String? // hal. "Walang Catsup", "Less Sugar"
+  prepStatus  PrepStatus  @default(PENDING) // may silbi lang sa items na RICE_MEALS (kitchen queue)
 
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])
 
   @@index([productId])
+}
+
+// Kitchen prep tracking — RICE_MEALS items lang ang binabantayan dito (tingnan OrderItem.prepStatus)
+enum PrepStatus {
+  PENDING
+  READY
+  DELIVERED
 }
 
 // ─────────────────── Stock operations ───────────────────

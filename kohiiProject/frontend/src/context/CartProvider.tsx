@@ -43,6 +43,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((current) => current.filter((i) => !sameLine(i, productId, size)));
   }, []);
 
+  const updateRemarks = useCallback((productId: number, size: ProductSize, remarks: string) => {
+    setItems((current) =>
+      current.map((i) => (sameLine(i, productId, size) ? { ...i, remarks: remarks || undefined } : i)),
+    );
+  }, []);
+
   const clearCart = useCallback(() => {
     setItems([]);
     setDiscountType('NONE');
@@ -74,10 +80,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
       incrementQty,
       decrementQty,
       removeItem,
+      updateRemarks,
       clearCart,
       setDiscount,
     }),
-    [items, subtotal, discountType, discountPercent, discountAmount, total, addItem, incrementQty, decrementQty, removeItem, clearCart, setDiscount],
+    [
+      items,
+      subtotal,
+      discountType,
+      discountPercent,
+      discountAmount,
+      total,
+      addItem,
+      incrementQty,
+      decrementQty,
+      removeItem,
+      updateRemarks,
+      clearCart,
+      setDiscount,
+    ],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

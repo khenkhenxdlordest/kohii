@@ -205,6 +205,16 @@ Bawat phase: **backend endpoint → frontend page → test sa browser → commit
 - [x] Backend: `GET /orders` (listing, role-scoped)
 - [x] Frontend: `salesAggregation.ts` + lahat ng 9+1 pages na-wire sa totoong data, tanggal na ang mockDashboard.ts
 
+### Phase 6.9 — Kitchen Notification + Item Remarks
+> Kasalukuyang proseso: oki-toki + staff na pabalik-balik sa pagitan ng Podium at Alley. Buong proposal sa [`KITCHEN_NOTIFICATION_PLAN.md`](KITCHEN_NOTIFICATION_PLAN.md). Hindi kailangan ng bagong login para sa Kitchen — shared station device lang, naka-login gamit ang existing cashier account.
+**Schema:** bagong `PrepStatus` enum (`PENDING | READY | DELIVERED`) at `OrderItem.remarks`/`OrderItem.prepStatus` (default `PENDING` sa lahat ng item, pero may silbi lang sa items na `RICE_MEALS` ang category).
+**Backend:** `OrdersService.create()` nagpa-pasa na ng `remarks`; bagong `GET /orders/kitchen-queue` at `PATCH /orders/items/:itemId/prep-status`; bagong realtime events `order:kitchen:new` at `order:item:statusChanged`. **Global ito** (hindi naka-scope sa isang store lang) — tulad ng `stock:updated`/`stock:low`, dahil iisang kitchen (Alley) lang ang naghahanda para sa dalawang store. Na-verify gamit ang cashier2 (Podium): dati, hindi nakikita ng Alley ang meal order na galing Podium; na-fix na.
+**Frontend:** `RemarksModal` (preset chips + free text) sa bawat CartPanel line item; bagong `KitchenQueuePage` (`/cashier/kitchen`) na nagsu-subscribe sa parehong dalawang event para live-update, walang manual refresh. May store badge (ALY/PDM) bawat order card dahil global na ang queue. Bagong `KitchenNotice` (sa `CashierLayout`, kaya kahit saang cashier page) — toast na "Ready to serve" / "Delivered" kapag nag-Ready o nag-Delivered ang isang item, pero naka-filter sa `storeId` (ang store kung saan talaga umorder ang customer) kaya ang Podium cashier lang ang makakakita ng toast para sa sariling order ng Podium, hindi para sa order ng Alley, at kabaliktaran.
+- [x] Schema migration + Prisma client
+- [x] Backend: remarks sa order creation, kitchen-queue endpoint, prep-status endpoint, global realtime events (may storeId na ngayon ang `order:item:statusChanged` payload)
+- [x] Frontend: Remarks modal + CartPanel wiring, Kitchen Queue page + sidebar link + store badge, KitchenNotice toast (store-filtered, visible sa buong cashier app)
+- [ ] Kumpirmahin sa interview: magkahiwalay ba talaga ng lokasyon ang Alley/Podium (tingnan `KITCHEN_NOTIFICATION_PLAN.md` §1) — hindi na ito blocker dahil global na ang queue, pero makakatulong pa rin malaman ang totoong setup
+
 ### Phase 7 — 🔒 Final Defense Hardening
 - [x] **I-on ang password hashing:** `PASSWORD_HASHING=true` sa `backend/.env`
 - [x] Patakbuhin ang `npx prisma db seed` (ginawang bcrypt ang mga default account)

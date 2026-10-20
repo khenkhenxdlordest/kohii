@@ -3,17 +3,20 @@ import { useCart } from '../../../../hooks/useCart';
 import { formatPeso } from '../../../../utils/format';
 import { sizeLabels } from '../../../../utils/productSizes';
 import { paymentMethods } from '../../../../utils/paymentMethods';
+import type { CartItem } from '../../../../context/cart.context';
 import type { Order, PaymentMethod } from '../../../../types';
 import Button from '../../../../components/ui/Button/Button';
 import Icon from '../../../../components/ui/Icon/Icon';
 import PaymentPanel from './PaymentPanel/PaymentPanel';
 import DiscountModal from './DiscountModal/DiscountModal';
+import RemarksModal from '../../../../components/modal/cashier/PosPage/RemarksModal/RemarksModal';
 import styles from './CartPanel.module.css';
 
 import plusIcon from '../../../../assets/icons/actions/plus.svg';
 import minusIcon from '../../../../assets/icons/actions/minus.svg';
 import closeIcon from '../../../../assets/icons/actions/close.svg';
 import discountIcon from '../../../../assets/icons/actions/discount.svg';
+import editIcon from '../../../../assets/icons/actions/edit.svg';
 
 const discountLabels: Record<string, string> = {
   NONE: 'Discount',
@@ -33,11 +36,13 @@ function CartPanel() {
     incrementQty,
     decrementQty,
     removeItem,
+    updateRemarks,
     clearCart,
   } = useCart();
   const [view, setView] = useState<'cart' | 'payment' | 'success'>('cart');
   const [method, setMethod] = useState<PaymentMethod | null>(null);
   const [discountModalOpen, setDiscountModalOpen] = useState(false);
+  const [remarksItem, setRemarksItem] = useState<CartItem | null>(null);
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
 
   const handleComplete = (order: Order) => {
@@ -99,7 +104,17 @@ function CartPanel() {
               <div className={styles.lineInfo}>
                 <span className={styles.lineName}>{item.name}</span>
                 <span className={styles.lineSize}>{sizeLabels[item.size]}</span>
+                {item.remarks && <span className={styles.lineRemarks}>{item.remarks}</span>}
               </div>
+
+              <button
+                type="button"
+                className={styles.noteButton}
+                aria-label={`Add remarks for ${item.name}`}
+                onClick={() => setRemarksItem(item)}
+              >
+                <Icon src={editIcon} size={14} />
+              </button>
 
               <div className={styles.stepper}>
                 <button
@@ -203,6 +218,16 @@ function CartPanel() {
           currentPercent={discountPercent}
           onClose={() => setDiscountModalOpen(false)}
           onApply={setDiscount}
+        />
+      )}
+
+      {remarksItem && (
+        <RemarksModal
+          itemName={remarksItem.name}
+          categoryGroup={remarksItem.categoryGroup}
+          currentRemarks={remarksItem.remarks}
+          onClose={() => setRemarksItem(null)}
+          onSave={(remarks) => updateRemarks(remarksItem.productId, remarksItem.size, remarks)}
         />
       )}
     </aside>

@@ -1,12 +1,21 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { DiscountType, PaymentMethod, ProductSize, ShiftStatus, StockMovementType } from '../generated/prisma/client.js';
+import {
+  CategoryGroup,
+  DiscountType,
+  PaymentMethod,
+  PrepStatus,
+  ProductSize,
+  ShiftStatus,
+  StockMovementType,
+} from '../generated/prisma/client.js';
 import { RealtimeService } from '../realtime/realtime.service.js';
 
 export interface OrderItemInput {
   productId: number;
   size: ProductSize;
   qty: number;
+  remarks?: string;
 }
 
 export interface CreateOrderInput {
@@ -85,6 +94,8 @@ export class OrdersService {
             qty: i.qty,
             unitPrice: i.unitPrice.toNumber(),
             lineTotal: i.lineTotal.toNumber(),
+            remarks: i.remarks,
+            prepStatus: i.prepStatus,
           }))
         : undefined,
     }));
@@ -100,7 +111,7 @@ export class OrdersService {
       const productIds = [...new Set(input.items.map((i) => i.productId))];
       const products = await tx.product.findMany({
         where: { id: { in: productIds } },
-        include: { prices: true, recipeItems: true },
+        include: { prices: true, recipeItems: true, category: true },
       });
       const productById = new Map(products.map((p) => [p.id, p]));
 
@@ -110,7 +121,7 @@ export class OrdersService {
         const price = product.prices.find((p) => p.size === item.size);
         if (!price) throw new BadRequestException(`${product.name} is not sold in that size.`);
         if (!Number.isInteger(item.qty) || item.qty <= 0) throw new BadRequestException('Quantity must be at least 1.');
-        return { product, size: item.size, qty: item.qty, unitPrice: price.price.toNumber() };
+        return { product, size: item.size, qty: item.qty, unitPrice: price.price.toNumber(), remarks: item.remarks };
       });
 
       const subtotal = round2(lines.reduce((sum, l) => sum + l.unitPrice * l.qty, 0));
@@ -164,6 +175,7 @@ export class OrdersService {
               qty: l.qty,
               unitPrice: l.unitPrice,
               lineTotal: round2(l.unitPrice * l.qty),
+              remarks: l.remarks ?? null,
             })),
           },
         },
@@ -199,10 +211,14 @@ export class OrdersService {
           ? await tx.inventoryItem.findMany({ where: { id: { in: [...affectedItemIds] } } })
           : [];
 
-      return { order, affectedItems };
+      const mealProductIds = new Set(
+        lines.filter((l) => l.product.category.group === CategoryGroup.RICE_MEALS).map((l) => l.product.id),
+      );
+
+      return { order, affectedItems, mealProductIds };
     });
 
-    const { order, affectedItems } = result;
+    const { order, affectedItems, mealProductIds } = result;
     this.realtime.emitOrderCreated(storeId, {
       ...order,
       subtotal: order.subtotal.toNumber(),
@@ -225,6 +241,25 @@ export class OrdersService {
       if (response.stockStatus !== 'OK') this.realtime.emitStockLow(response);
     }
 
+    const mealItems = order.items.filter((i) => mealProductIds.has(i.productId));
+    if (mealItems.length > 0) {
+      // Iisang kitchen (Alley) ang naghahanda ng meals ng dalawang store, kaya global ang event
+      this.realtime.emitKitchenOrderNew({
+        orderId: order.id,
+        receiptNo: order.receiptNo,
+        storeId,
+        createdAt: order.createdAt,
+        items: mealItems.map((i) => ({
+          id: i.id,
+          productName: i.productName,
+          size: i.size,
+          qty: i.qty,
+          remarks: i.remarks,
+          prepStatus: i.prepStatus,
+        })),
+      });
+    }
+
     return {
       ...order,
       subtotal: order.subtotal.toNumber(),
@@ -234,5 +269,61 @@ export class OrdersService {
       changeDue: order.changeDue?.toNumber() ?? null,
       items: order.items.map((i) => ({ ...i, unitPrice: i.unitPrice.toNumber(), lineTotal: i.lineTotal.toNumber() })),
     };
+  }
+
+  // GET /orders/kitchen-queue — iisang kitchen (Alley) ang naghahanda para sa dalawang store,
+  // kaya global ang queue: lahat ng order (kahit saang store) na may RICE_MEALS item na hindi pa DELIVERED
+  async findKitchenQueue() {
+    const orders = await this.prisma.order.findMany({
+      where: {
+        items: { some: { product: { category: { group: CategoryGroup.RICE_MEALS } }, prepStatus: { not: PrepStatus.DELIVERED } } },
+      },
+      orderBy: { createdAt: 'asc' },
+      include: {
+        store: { select: { code: true } },
+        items: { include: { product: { include: { category: true } } } },
+      },
+    });
+
+    return orders.map((o) => ({
+      orderId: o.id,
+      receiptNo: o.receiptNo,
+      storeCode: o.store.code,
+      createdAt: o.createdAt,
+      items: o.items
+        .filter((i) => i.product.category.group === CategoryGroup.RICE_MEALS && i.prepStatus !== PrepStatus.DELIVERED)
+        .map((i) => ({
+          id: i.id,
+          productName: i.productName,
+          size: i.size,
+          qty: i.qty,
+          remarks: i.remarks,
+          prepStatus: i.prepStatus,
+        })),
+    }));
+  }
+
+  // PATCH /orders/items/:itemId/prep-status
+  async updateItemPrepStatus(itemId: number, status: PrepStatus) {
+    const item = await this.prisma.orderItem.findUnique({
+      where: { id: itemId },
+      include: { order: { select: { storeId: true, receiptNo: true } } },
+    });
+    if (!item) throw new NotFoundException('Order item not found.');
+
+    const updated = await this.prisma.orderItem.update({ where: { id: itemId }, data: { prepStatus: status } });
+
+    // Global para sa Kitchen Queue page (sino man ang nakabukas), pero may storeId
+    // para ma-filter ng cashier-side notification kung aling store dapat makakita
+    this.realtime.emitPrepStatusChanged({
+      orderId: item.orderId,
+      itemId: updated.id,
+      productName: item.productName,
+      prepStatus: updated.prepStatus,
+      storeId: item.order.storeId,
+      receiptNo: item.order.receiptNo,
+    });
+
+    return { id: updated.id, prepStatus: updated.prepStatus };
   }
 }

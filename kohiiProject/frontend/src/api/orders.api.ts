@@ -1,8 +1,8 @@
-import type { DiscountType, Order, OrderListItem, PaymentMethod, ProductSize } from '../types';
+import type { DiscountType, KitchenQueueOrder, Order, OrderListItem, PaymentMethod, PrepStatus, ProductSize } from '../types';
 import { apiRequest } from './client';
 
 export interface CreateOrderInput {
-  items: { productId: number; size: ProductSize; qty: number }[];
+  items: { productId: number; size: ProductSize; qty: number; remarks?: string }[];
   paymentMethod: PaymentMethod;
   discountType: DiscountType;
   discountPercent?: number;
@@ -12,6 +12,17 @@ export interface CreateOrderInput {
 
 export function createOrder(input: CreateOrderInput) {
   return apiRequest<Order>('/orders', { method: 'POST', body: JSON.stringify(input) });
+}
+
+export function getKitchenQueue() {
+  return apiRequest<KitchenQueueOrder[]>('/orders/kitchen-queue');
+}
+
+export function updateItemPrepStatus(itemId: number, status: Exclude<PrepStatus, 'PENDING'>) {
+  return apiRequest<{ id: number; prepStatus: PrepStatus }>(`/orders/items/${itemId}/prep-status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  });
 }
 
 export interface OrderFilters {

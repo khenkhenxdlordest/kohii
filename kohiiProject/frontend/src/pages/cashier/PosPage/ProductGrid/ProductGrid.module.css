@@ -12,8 +12,6 @@
 
 .card {
   position: relative;
-  display: flex;
-  flex-direction: column;
   border: 1px solid var(--line);
   border-radius: 16px;
   background: var(--surface);

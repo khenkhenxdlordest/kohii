@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, ForbiddenException, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, ForbiddenException, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { OrdersService } from './orders.service.js';
 import { CreateOrderDto } from './dto/create-order.dto.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
@@ -6,12 +6,13 @@ import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
 import type { AuthRequest } from '../auth/jwt-payload.js';
 import { Role } from '../common/enums/role.enum.js';
-import { DiscountType, PaymentMethod, ProductSize } from '../generated/prisma/client.js';
+import { DiscountType, PaymentMethod, PrepStatus, ProductSize } from '../generated/prisma/client.js';
 import { optionalQty, optionalString, requireEnum, requireId, requireQty } from '../common/utils/validation.js';
 
 const paymentMethods = Object.values(PaymentMethod);
 const discountTypes = Object.values(DiscountType);
 const productSizes = Object.values(ProductSize);
+const prepStatuses = Object.values(PrepStatus).filter((s) => s !== PrepStatus.PENDING);
 
 @Controller('orders')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -55,6 +56,7 @@ export class OrdersController {
           productId: requireId(item?.productId, 'Product'),
           size: requireEnum(item?.size, productSizes, 'Size'),
           qty: requireQty(item?.qty, 'Quantity'),
+          remarks: optionalString(item?.remarks, 'Remarks', 200),
         })),
         paymentMethod: requireEnum(body?.paymentMethod, paymentMethods, 'Payment method'),
         discountType: requireEnum(body?.discountType, discountTypes, 'Discount type'),
@@ -65,6 +67,19 @@ export class OrdersController {
       req.user.sub,
       this.storeOf(req),
     );
+  }
+
+  // GET /api/orders/kitchen-queue — iisang kitchen (Alley) ang naghahanda para sa dalawang store,
+  // kaya global ito: lahat ng order (kahit saang store) na may RICE_MEALS item na hindi pa DELIVERED
+  @Get('kitchen-queue')
+  findKitchenQueue() {
+    return this.ordersService.findKitchenQueue();
+  }
+
+  // PATCH /api/orders/items/:itemId/prep-status
+  @Patch('items/:itemId/prep-status')
+  updateItemPrepStatus(@Param('itemId') itemId: string, @Body() body: { status?: string }) {
+    return this.ordersService.updateItemPrepStatus(requireId(itemId, 'Item'), requireEnum(body?.status, prepStatuses, 'Status'));
   }
 
   // Dapat laging may store ang cashier; guarded na ng @Roles(Role.CASHIER)

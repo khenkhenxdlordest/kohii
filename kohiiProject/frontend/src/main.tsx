@@ -8,3 +8,6 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 )
+//tama naman ah, ayusin mo spelling pre kaya nga namali HAHAHAHAH
+
+// tanginamo ulol panoodin moko wag mo shutdown gago

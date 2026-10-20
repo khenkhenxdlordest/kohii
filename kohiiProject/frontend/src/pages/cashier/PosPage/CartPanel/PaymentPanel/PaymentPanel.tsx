@@ -42,7 +42,7 @@ function PaymentPanel({ total, method, onBack, onComplete }: PaymentPanelProps) 
     setSaving(true);
     try {
       const order = await createOrder({
-        items: items.map((i) => ({ productId: i.productId, size: i.size, qty: i.qty })),
+        items: items.map((i) => ({ productId: i.productId, size: i.size, qty: i.qty, remarks: i.remarks })),
         paymentMethod: method,
         discountType,
         discountPercent: discountType === 'CUSTOM' ? discountPercent : undefined,

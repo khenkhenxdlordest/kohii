@@ -14,7 +14,7 @@ function ProductCard({ product }: { product: Product }) {
   const [pickingSize, setPickingSize] = useState(false);
 
   const pick = (size: ProductSize, price: number) => {
-    addItem({ productId: product.id, name: product.name, size, unitPrice: price });
+    addItem({ productId: product.id, name: product.name, size, unitPrice: price, categoryGroup: product.category.group });
     setPickingSize(false);
   };
 

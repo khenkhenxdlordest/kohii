@@ -82,7 +82,7 @@
 
 .line {
   display: grid;
-  grid-template-columns: auto 1fr auto auto auto;
+  grid-template-columns: auto 1fr auto auto auto auto;
   align-items: center;
   gap: 10px;
   padding: 10px 8px;
@@ -123,6 +123,31 @@
 .lineSize {
   font-size: 12px;
   color: var(--muted);
+}
+
+.lineRemarks {
+  margin-top: 2px;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--espresso);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.noteButton {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.noteButton:hover {
+  color: var(--espresso);
 }
 
 .stepper {

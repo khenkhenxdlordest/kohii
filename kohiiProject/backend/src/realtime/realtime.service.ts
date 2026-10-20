@@ -26,4 +26,13 @@ export class RealtimeService {
   emitShiftChanged(storeId: number, shift: unknown) {
     this.gateway.server.to(ADMIN_ROOM).to(storeRoom(storeId)).emit('shift:changed', shift);
   }
+
+  /** Iisang kitchen lang (Alley) ang naghahanda para sa dalawang store — global tulad ng stock events */
+  emitKitchenOrderNew(payload: unknown) {
+    this.gateway.server.emit('order:kitchen:new', payload);
+  }
+
+  emitPrepStatusChanged(payload: unknown) {
+    this.gateway.server.emit('order:item:statusChanged', payload);
+  }
 }

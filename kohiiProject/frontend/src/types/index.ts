@@ -127,6 +127,9 @@ export type PaymentMethod = 'CASH' | 'GCASH' | 'MAYA' | 'BANK_TRANSFER';
 /** SENIOR/PWD = legal na 20% (RA 9994 / RA 10754); CUSTOM = manual na % na ipapasok ng cashier */
 export type DiscountType = 'NONE' | 'SENIOR' | 'PWD' | 'CUSTOM';
 
+/** May silbi lang sa RICE_MEALS items — kitchen queue sa Alley */
+export type PrepStatus = 'PENDING' | 'READY' | 'DELIVERED';
+
 export interface OrderItem {
   id: number;
   productId: number;
@@ -135,6 +138,8 @@ export interface OrderItem {
   qty: number;
   unitPrice: number;
   lineTotal: number;
+  remarks: string | null;
+  prepStatus: PrepStatus;
 }
 
 export interface Order {
@@ -153,6 +158,24 @@ export interface Order {
   referenceNo: string | null;
   createdAt: string;
   items: OrderItem[];
+}
+
+/** Row galing sa GET /orders/kitchen-queue — RICE_MEALS items lang, hindi pa DELIVERED */
+export interface KitchenQueueItem {
+  id: number;
+  productName: string;
+  size: ProductSize;
+  qty: number;
+  remarks: string | null;
+  prepStatus: PrepStatus;
+}
+
+export interface KitchenQueueOrder {
+  orderId: number;
+  receiptNo: string;
+  storeCode: string;
+  createdAt: string;
+  items: KitchenQueueItem[];
 }
 
 /** Row galing sa GET /orders — flat na storeCode/storeName/cashierName para madaling gamitin sa listahan/reports */
