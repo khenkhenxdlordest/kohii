@@ -7,11 +7,12 @@ import DataTable, { type DataTableAction, type DataTableColumn } from '../../../
 import DeployStaffModal from '../../../components/modal/admin/StoresPage/DeployStaffModal/DeployStaffModal';
 import { deployStaff, getStores } from '../../../api/stores.api';
 import { getEmployees } from '../../../api/employees.api';
-import type { Employee, StaffPosition, Store } from '../../../types';
+import { getOrders } from '../../../api/orders.api';
+import type { Employee, OrderListItem, StaffPosition, Store } from '../../../types';
 import { positionLabels, positionOrder, shiftLabels } from '../../../utils/roles';
+import { storeSalesSummary } from '../../../utils/salesAggregation';
 
 import StoreSalesModal from '../../../components/modal/admin/StoresPage/StoreSalesModal/StoreSalesModal';
-import { getStoreSales } from '../../../utils/mockDashboard';
 
 import userPlusIcon from '../../../assets/icons/actions/user-plus.svg';
 import editIcon from '../../../assets/icons/actions/edit.svg';
@@ -29,6 +30,7 @@ type DeployState = { store: Store; initialSelection: number[] } | null;
 function StoresPage() {
   const [stores, setStores] = useState<Store[] | null>(null);
   const [staff, setStaff] = useState<Employee[]>([]);
+  const [todayOrders, setTodayOrders] = useState<OrderListItem[]>([]);
   const [loadError, setLoadError] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
   const [deploy, setDeploy] = useState<DeployState>(null);
@@ -39,12 +41,14 @@ function StoresPage() {
 
   useEffect(() => {
     let ignore = false;
-    Promise.all([getStores(), getEmployees()])
-      .then(([storeList, userList]) => {
+    const today = new Date().toISOString().slice(0, 10);
+    Promise.all([getStores(), getEmployees(), getOrders({ from: today, to: today })])
+      .then(([storeList, userList, orders]) => {
         if (ignore) return;
         setStores(storeList);
         // Store staff lang (cashier, barista, kitchen) na aktibo, may login man o wala
         setStaff(userList.filter((u) => u.position !== null && u.isActive));
+        setTodayOrders(orders);
       })
       .catch((err: Error) => {
         if (!ignore) setLoadError(err.message);
@@ -194,7 +198,7 @@ function StoresPage() {
         <div className={styles.stores}>
           {stores.map((store, index) => {
             const storeStaff = staff.filter((u) => u.storeId === store.id);
-            const sales = getStoreSales(store.code);
+            const sales = storeSalesSummary(todayOrders.filter((o) => o.storeId === store.id));
             return (
               <section
                 key={store.id}
@@ -228,7 +232,7 @@ function StoresPage() {
                       <span className={styles.salesValue}>₱{sales.sales.toLocaleString()}</span>
                       <span className={styles.salesCaption}>
                         <Icon src={ordersIcon} size={12} />
-                        {sales.orders} orders · Sample data
+                        {sales.orders} orders
                       </span>
                     </span>
                     <span className={styles.salesView}>
@@ -283,7 +287,11 @@ function StoresPage() {
       )}
 
       {salesView && (
-        <StoreSalesModal store={salesView} data={getStoreSales(salesView.code)} onClose={() => setSalesView(null)} />
+        <StoreSalesModal
+          store={salesView}
+          data={storeSalesSummary(todayOrders.filter((o) => o.storeId === salesView.id))}
+          onClose={() => setSalesView(null)}
+        />
       )}
     </section>
   );

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import StatCard from '../../../components/ui/StatCard/StatCard';
 import Icon from '../../../components/ui/Icon/Icon';
@@ -9,8 +9,11 @@ import styles from './AdminDashboardPage.module.css';
 import { getProducts } from '../../../api/products.api';
 import { getInventoryItems } from '../../../api/inventory.api';
 import { getAuditLog } from '../../../api/auditLog.api';
-import { getDashboardSummary, getStoreSales, getTopProducts, STORE_CODES, type TopProduct } from '../../../utils/mockDashboard';
-import type { AuditLogEntry, InventoryItem } from '../../../types';
+import { getStores } from '../../../api/stores.api';
+import { getOrders } from '../../../api/orders.api';
+import { dateOf, pctChange, productSales, storeSalesSummary, sumTotals } from '../../../utils/salesAggregation';
+import { formatPeso } from '../../../utils/format';
+import type { AuditLogEntry, InventoryItem, OrderListItem, Product, Store } from '../../../types';
 
 import salesIcon from '../../../assets/icons/cards/sales.svg';
 import ordersIcon from '../../../assets/icons/cards/orders.svg';
@@ -20,11 +23,6 @@ import storeIcon from '../../../assets/icons/sidebar/store.svg';
 import usersIcon from '../../../assets/icons/sidebar/users.svg';
 import salesReportsIcon from '../../../assets/icons/sidebar/sales-reports.svg';
 import performanceIcon from '../../../assets/icons/sidebar/performance.svg';
-
-// TODO(Phase 6): palitan ng totoong data mula sa GET /api/dashboard; mock muna sa utils/mockDashboard
-const STORE_NAMES: Record<string, string> = { ALY: 'Alley', PDM: 'Podium' };
-const summary = getDashboardSummary();
-const storeSales = STORE_CODES.map((code) => ({ code, name: STORE_NAMES[code] ?? code, ...getStoreSales(code) }));
 
 const quickActions: QuickActionItem[] = [
   {
@@ -71,20 +69,29 @@ const quickActions: QuickActionItem[] = [
   },
 ];
 
+function toIso(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
 function AdminDashboardPage() {
-  const [topProducts, setTopProducts] = useState<TopProduct[] | null>(null);
+  const [stores, setStores] = useState<Store[] | null>(null);
+  const [products, setProducts] = useState<Product[] | null>(null);
+  const [recentOrders, setRecentOrders] = useState<OrderListItem[] | null>(null);
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[] | null>(null);
   const [auditLog, setAuditLog] = useState<AuditLogEntry[] | null>(null);
 
   useEffect(() => {
     let ignore = false;
+    const today = toIso(new Date());
+    const yesterday = toIso(new Date(Date.now() - 86_400_000));
+
+    getStores().then((list) => !ignore && setStores(list));
     getProducts()
-      .then((products) => {
-        if (!ignore) setTopProducts(getTopProducts(products));
-      })
-      .catch(() => {
-        if (!ignore) setTopProducts([]);
-      });
+      .then((list) => !ignore && setProducts(list))
+      .catch(() => !ignore && setProducts([]));
+    getOrders({ from: yesterday, to: today, includeItems: true })
+      .then((orders) => !ignore && setRecentOrders(orders))
+      .catch(() => !ignore && setRecentOrders([]));
     getInventoryItems().then((items) => !ignore && setInventoryItems(items));
     getAuditLog(20)
       .then((entries) => !ignore && setAuditLog(entries))
@@ -97,27 +104,53 @@ function AdminDashboardPage() {
   const lowStockCount = inventoryItems?.filter((i) => i.stockStatus === 'LOW').length ?? 0;
   const outOfStockCount = inventoryItems?.filter((i) => i.stockStatus === 'OUT').length ?? 0;
 
+  const [todayIso] = useState(() => toIso(new Date()));
+  const [yesterdayIso] = useState(() => toIso(new Date(Date.now() - 86_400_000)));
+
+  const todayOrders = useMemo(
+    () => (recentOrders ?? []).filter((o) => dateOf(o.createdAt) === todayIso),
+    [recentOrders, todayIso],
+  );
+  const yesterdayOrders = useMemo(
+    () => (recentOrders ?? []).filter((o) => dateOf(o.createdAt) === yesterdayIso),
+    [recentOrders, yesterdayIso],
+  );
+
+  const todayTotals = sumTotals(todayOrders);
+  const yesterdayTotals = sumTotals(yesterdayOrders);
+  const salesChange = pctChange(todayTotals.total, yesterdayTotals.total);
+  const ordersChange = pctChange(todayTotals.count, yesterdayTotals.count);
+
+  const storeSales = (stores ?? []).map((store) => ({
+    ...store,
+    ...storeSalesSummary(todayOrders.filter((o) => o.storeId === store.id)),
+  }));
+
+  const categoryById = new Map((products ?? []).map((p) => [p.id, p.category.name]));
+  const topProducts = productSales(todayOrders)
+    .sort((a, b) => b.qty - a.qty)
+    .slice(0, 5);
+
   return (
     <section>
       <div className={styles.header}>
         <h1 className={styles.title}>Owner Dashboard</h1>
-        <span className={styles.sampleNote}>Sample data</span>
       </div>
 
       <div className={styles.stats}>
         <StatCard
           variant="sales"
           title="Sales Today"
-          value={`₱${summary.salesToday.toLocaleString()}`}
+          value={formatPeso(todayTotals.total)}
           caption="Both stores, vs. yesterday"
-          change={summary.salesChange}
+          change={salesChange}
         />
         <StatCard
           variant="orders"
           title="Orders Today"
-          value={summary.ordersToday}
+          value={todayTotals.count}
           caption="Both stores, vs. yesterday"
-          change={summary.ordersChange}
+          change={ordersChange}
         />
         <StatCard
           variant="lowStock"
@@ -137,47 +170,52 @@ function AdminDashboardPage() {
         <div className={styles.panel}>
           <h2 className={styles.panelTitle}>Sales by store</h2>
           <p className={styles.panelText}>Today's sales and orders, per store.</p>
-          <ul className={styles.storeList}>
-            {storeSales.map((store) => (
-              <li key={store.code}>
-                <Link to="/admin/stores" className={styles.storeRow}>
-                  <span className={styles.storeRowName}>
-                    {store.name}
-                    <span className={styles.storeRowCode}>{store.code}</span>
-                  </span>
-                  <span className={styles.storeRowStat}>
-                    <Icon src={salesIcon} size={14} />₱{store.sales.toLocaleString()}
-                  </span>
-                  <span className={styles.storeRowStat}>
-                    <Icon src={ordersIcon} size={14} />
-                    {store.orders} orders
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {stores === null ? (
+            <div className={styles.panelEmpty}>Loading...</div>
+          ) : (
+            <ul className={styles.storeList}>
+              {storeSales.map((store) => (
+                <li key={store.id}>
+                  <Link to="/admin/stores" className={styles.storeRow}>
+                    <span className={styles.storeRowName}>
+                      {store.name}
+                      <span className={styles.storeRowCode}>{store.code}</span>
+                    </span>
+                    <span className={styles.storeRowStat}>
+                      <Icon src={salesIcon} size={14} />
+                      {formatPeso(store.sales)}
+                    </span>
+                    <span className={styles.storeRowStat}>
+                      <Icon src={ordersIcon} size={14} />
+                      {store.orders} orders
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div className={styles.panel}>
           <h2 className={styles.panelTitle}>Top products</h2>
           <p className={styles.panelText}>Best sellers today.</p>
-          {topProducts === null ? (
+          {recentOrders === null ? (
             <div className={styles.panelEmpty}>Loading...</div>
           ) : topProducts.length === 0 ? (
-            <div className={styles.panelEmpty}>No products yet</div>
+            <div className={styles.panelEmpty}>No sales yet today</div>
           ) : (
             <ol className={styles.productList}>
               {topProducts.map((product, index) => (
-                <li key={product.id}>
+                <li key={product.productId}>
                   <Link to="/admin/reports/products" className={styles.productRow}>
                     <span className={styles.productRank}>{index + 1}</span>
                     <span className={styles.productInfo}>
                       <span className={styles.productName}>{product.name}</span>
-                      <span className={styles.productCategory}>{product.category}</span>
+                      <span className={styles.productCategory}>{categoryById.get(product.productId) ?? ''}</span>
                     </span>
                     <span className={styles.productStat}>
-                      <span className={styles.productQty}>{product.qtySold} sold</span>
-                      <span className={styles.productRevenue}>₱{product.revenue.toLocaleString()}</span>
+                      <span className={styles.productQty}>{product.qty} sold</span>
+                      <span className={styles.productRevenue}>{formatPeso(product.revenue)}</span>
                     </span>
                   </Link>
                 </li>

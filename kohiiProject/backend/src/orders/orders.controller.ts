@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, ForbiddenException, Post, Req, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, ForbiddenException, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { OrdersService } from './orders.service.js';
 import { CreateOrderDto } from './dto/create-order.dto.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
@@ -18,6 +18,30 @@ const productSizes = Object.values(ProductSize);
 @Roles(Role.CASHIER)
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
+
+  // GET /api/orders?storeId=&cashierId=&from=&to=&limit=&includeItems=true
+  // Cashier: palaging sariling store/cashier lang. Admin/Clerk: opsyonal ang storeId/cashierId (lahat ng store by default).
+  @Get()
+  @Roles(Role.ADMIN, Role.CLERK, Role.CASHIER)
+  findAll(
+    @Req() req: AuthRequest,
+    @Query('storeId') storeId?: string,
+    @Query('cashierId') cashierId?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('limit') limit?: string,
+    @Query('includeItems') includeItems?: string,
+  ) {
+    const isCashier = req.user.role === Role.CASHIER;
+    return this.ordersService.findAll({
+      storeId: isCashier ? this.storeOf(req) : storeId ? requireId(storeId, 'Store') : undefined,
+      cashierId: isCashier ? req.user.sub : cashierId ? requireId(cashierId, 'Cashier') : undefined,
+      from,
+      to,
+      limit: Math.min(Math.max(Number(limit) || 500, 1), 1000),
+      includeItems: includeItems === 'true',
+    });
+  }
 
   // POST /api/orders
   @Post()

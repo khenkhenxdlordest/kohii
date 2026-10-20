@@ -3,7 +3,7 @@ import Icon from '../../../../ui/Icon/Icon';
 import styles from './StoreSalesModal.module.css';
 
 import type { Store } from '../../../../../types';
-import type { StoreSales } from '../../../../../utils/mockDashboard';
+import type { StoreSalesSummary } from '../../../../../utils/salesAggregation';
 import { shiftLabels } from '../../../../../utils/roles';
 
 import salesIcon from '../../../../../assets/icons/cards/sales.svg';
@@ -11,8 +11,7 @@ import ordersIcon from '../../../../../assets/icons/cards/orders.svg';
 
 const peso = (value: number) => `₱${value.toLocaleString()}`;
 
-// Pansamantala habang wala pang POS (Phase 3); malinaw na naka-tag na "Sample data"
-function StoreSalesModal({ store, data, onClose }: { store: Store; data: StoreSales; onClose: () => void }) {
+function StoreSalesModal({ store, data, onClose }: { store: Store; data: StoreSalesSummary; onClose: () => void }) {
   const avgOrder = data.orders > 0 ? data.sales / data.orders : 0;
   const maxShiftSales = Math.max(...data.shifts.map((s) => s.sales), 1);
 
@@ -21,7 +20,7 @@ function StoreSalesModal({ store, data, onClose }: { store: Store; data: StoreSa
       open
       icon={salesIcon}
       title={`${store.name} sales`}
-      description="Today · Sample data, coming from POS in Phase 3"
+      description="Today"
       onClose={onClose}
       width={460}
     >

@@ -1,20 +1,43 @@
+import { useEffect, useState } from 'react';
 import StatCard from '../../../components/ui/StatCard/StatCard';
+import { getInventoryItems, getMovements } from '../../../api/inventory.api';
+import { dateOf } from '../../../utils/salesAggregation';
+import type { InventoryItem } from '../../../types';
 import styles from './ClerkDashboardPage.module.css';
 
-// TODO(Phase 4/6): palitan ng totoong data mula sa inventory at dashboard API
 function ClerkDashboardPage() {
+  const [items, setItems] = useState<InventoryItem[] | null>(null);
+  const [stockInToday, setStockInToday] = useState<number | null>(null);
+
+  useEffect(() => {
+    let ignore = false;
+    getInventoryItems().then((list) => !ignore && setItems(list));
+    getMovements({ type: 'STOCK_IN', limit: 200 })
+      .then((movements) => {
+        if (ignore) return;
+        const today = dateOf(new Date().toISOString());
+        setStockInToday(movements.filter((m) => dateOf(m.createdAt) === today).length);
+      })
+      .catch(() => !ignore && setStockInToday(0));
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const lowStockCount = items?.filter((i) => i.stockStatus === 'LOW').length ?? 0;
+  const outOfStockCount = items?.filter((i) => i.stockStatus === 'OUT').length ?? 0;
+
   return (
     <section>
       <div className={styles.header}>
         <h1 className={styles.title}>Inventory Dashboard</h1>
-        <span className={styles.sampleNote}>Sample data</span>
       </div>
 
       <div className={styles.stats}>
-        <StatCard variant="lowStock" title="Low Stock" value={5} caption="Ingredients below threshold" />
-        <StatCard variant="outOfStock" title="Out of Stock" value={1} caption="Needs restock now" />
-        <StatCard variant="stockIn" title="Stock In Today" value={3} caption="Deliveries recorded" />
-        <StatCard variant="products" title="Ingredients Tracked" value={12} caption="Across both stores" />
+        <StatCard variant="lowStock" title="Low Stock" value={lowStockCount} caption="Ingredients below threshold" />
+        <StatCard variant="outOfStock" title="Out of Stock" value={outOfStockCount} caption="Needs restock now" />
+        <StatCard variant="stockIn" title="Stock In Today" value={stockInToday ?? 0} caption="Deliveries recorded" />
+        <StatCard variant="products" title="Ingredients Tracked" value={items?.length ?? 0} caption="Across both stores" />
       </div>
 
       <div className={styles.panels}>

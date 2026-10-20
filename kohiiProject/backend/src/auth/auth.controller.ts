@@ -17,9 +17,10 @@ import { extname } from 'path';
 import { AuthService } from './auth.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { UpdateProfileDto } from './dto/update-profile.dto.js';
+import { ChangePasswordDto } from './dto/change-password.dto.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import type { AuthRequest } from './jwt-payload.js';
-import { nullable, optionalString } from '../common/utils/validation.js';
+import { nullable, optionalString, requireString } from '../common/utils/validation.js';
 
 const PHOTO_MAX_BYTES = 3 * 1024 * 1024;
 const PHOTO_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp']);
@@ -44,6 +45,16 @@ export class AuthController {
       throw new BadRequestException('Username and password are required.');
     }
     return this.authService.login(username, password);
+  }
+
+  // PATCH /api/auth/change-password — sariling password lang
+  @Patch('change-password')
+  @UseGuards(JwtAuthGuard)
+  changePassword(@Body() body: ChangePasswordDto, @Req() req: AuthRequest) {
+    const currentPassword = requireString(body?.currentPassword, 'Current password', 72);
+    const newPassword = requireString(body?.newPassword, 'New password', 72);
+    if (newPassword.length < 8) throw new BadRequestException('New password must be at least 8 characters.');
+    return this.authService.changePassword(req.user.sub, currentPassword, newPassword);
   }
 
   // GET /api/auth/me

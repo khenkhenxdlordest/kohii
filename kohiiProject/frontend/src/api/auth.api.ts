@@ -33,6 +33,13 @@ export function updateMe(payload: UpdateProfilePayload) {
   });
 }
 
+export function changeMyPassword(payload: { currentPassword: string; newPassword: string }) {
+  return apiRequest<AuthUser>('/auth/change-password', {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
 // Multipart upload; hindi gamit ang apiRequest dahil hindi JSON ang body
 export async function uploadMyPhoto(file: File): Promise<AuthUser> {
   const token = localStorage.getItem('accessToken');

@@ -3,7 +3,8 @@ import Modal from '../../../Modal/Modal';
 import Button from '../../../../ui/Button/Button';
 import styles from './ExportReportModal.module.css';
 
-import type { MockSaleRow } from '../../../../../utils/mockDashboard';
+import type { OrderListItem } from '../../../../../types';
+import { discountLabel } from '../../../../../utils/salesAggregation';
 import { formatDateTime, formatPeso } from '../../../../../utils/format';
 
 import downloadIcon from '../../../../../assets/icons/sidebar/stock-in.svg';
@@ -31,9 +32,17 @@ const HEADER_STYLE = {
 const TOTAL_STYLE = { font: { bold: true }, alignment: { horizontal: 'right' } };
 const RIGHT_ALIGN = { alignment: { horizontal: 'right' } };
 
-function exportXlsx(rows: MockSaleRow[], totalSum: number) {
+function exportXlsx(rows: OrderListItem[], totalSum: number) {
   const header = ['Date & Time', 'Store', 'Cashier', 'Items', 'Payment', 'Discount', 'Total'];
-  const body = rows.map((r) => [formatDateTime(r.dateTime), r.storeName, r.cashier, r.itemsCount, r.paymentMethod, r.discount, r.total]);
+  const body = rows.map((r) => [
+    formatDateTime(r.createdAt),
+    r.storeName,
+    r.cashierName,
+    r.itemsCount,
+    r.paymentMethod,
+    discountLabel(r),
+    r.total,
+  ]);
 
   const sheetData = [header, ...body, ['', '', '', '', '', 'Total', totalSum]];
   const sheet = XLSX.utils.aoa_to_sheet(sheetData);
@@ -77,13 +86,13 @@ function exportXlsx(rows: MockSaleRow[], totalSum: number) {
 }
 
 // Window print → "Save as PDF" sa browser; walang dagdag na library
-function exportPdf(rows: MockSaleRow[], totalSum: number) {
+function exportPdf(rows: OrderListItem[], totalSum: number) {
   const win = window.open('', '_blank');
   if (!win) return;
   const rowsHtml = rows
     .map(
       (r) =>
-        `<tr><td>${formatDateTime(r.dateTime)}</td><td>${r.storeName}</td><td>${r.cashier}</td><td style="text-align:right">${r.itemsCount}</td><td>${r.paymentMethod}</td><td>${r.discount}</td><td style="text-align:right">${formatPeso(r.total)}</td></tr>`,
+        `<tr><td>${formatDateTime(r.createdAt)}</td><td>${r.storeName}</td><td>${r.cashierName}</td><td style="text-align:right">${r.itemsCount}</td><td>${r.paymentMethod}</td><td>${discountLabel(r)}</td><td style="text-align:right">${formatPeso(r.total)}</td></tr>`,
     )
     .join('');
   win.document.write(`
@@ -117,7 +126,7 @@ function exportPdf(rows: MockSaleRow[], totalSum: number) {
 }
 
 export interface ExportReportModalProps {
-  rows: MockSaleRow[];
+  rows: OrderListItem[];
   rangeLabel: string;
   onClose: () => void;
 }
@@ -177,9 +186,9 @@ function ExportReportModal({ rows, rangeLabel, onClose }: ExportReportModalProps
               <tbody>
                 {preview.map((row) => (
                   <tr key={row.id}>
-                    <td>{formatDateTime(row.dateTime)}</td>
+                    <td>{formatDateTime(row.createdAt)}</td>
                     <td>{row.storeName}</td>
-                    <td>{row.cashier}</td>
+                    <td>{row.cashierName}</td>
                     <td className={styles.alignRight}>{formatPeso(row.total)}</td>
                   </tr>
                 ))}

@@ -155,6 +155,30 @@ export interface Order {
   items: OrderItem[];
 }
 
+/** Row galing sa GET /orders — flat na storeCode/storeName/cashierName para madaling gamitin sa listahan/reports */
+export interface OrderListItem {
+  id: number;
+  receiptNo: string;
+  storeId: number;
+  storeCode: string;
+  storeName: string;
+  cashierId: number;
+  cashierName: string;
+  shiftId: number;
+  paymentMethod: PaymentMethod;
+  subtotal: number;
+  discountType: DiscountType;
+  discountAmount: number;
+  total: number;
+  amountTendered: number | null;
+  changeDue: number | null;
+  referenceNo: string | null;
+  createdAt: string;
+  itemsCount: number;
+  /** Naka-populate lang kung ipinasa ang includeItems:true sa getOrders() */
+  items?: OrderItem[];
+}
+
 export interface Shift {
   id: number;
   storeId: number;

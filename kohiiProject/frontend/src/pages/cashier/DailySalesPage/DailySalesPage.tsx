@@ -1,12 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Icon from '../../../components/ui/Icon/Icon';
 import Button from '../../../components/ui/Button/Button';
 import DataTable, { type DataTableColumn } from '../../../components/ui/DataTable/DataTable';
 import DateRangeFilter, { type DateRangeValue } from '../../../components/ui/DateRangeFilter/DateRangeFilter';
 import ExportReportModal from '../../../components/modal/admin/SalesReportsPage/ExportReportModal/ExportReportModal';
 import { useAuth } from '../../../hooks/useAuth';
-import { getMockSales, type MockSaleRow } from '../../../utils/mockDashboard';
+import { getOrders } from '../../../api/orders.api';
+import { dateOf, discountLabel } from '../../../utils/salesAggregation';
 import { formatDateTime, formatPeso } from '../../../utils/format';
+import type { OrderListItem } from '../../../types';
 import styles from './DailySalesPage.module.css';
 
 import searchIcon from '../../../assets/icons/actions/search.svg';
@@ -14,20 +16,15 @@ import downloadIcon from '../../../assets/icons/sidebar/stock-in.svg';
 
 const DAYS_OF_DATA = 90;
 
-function todayIso() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
+const toIso = (date: Date) => date.toISOString().slice(0, 10);
 
-const dateOf = (iso: string) => iso.slice(0, 10);
-
-const columns: DataTableColumn<MockSaleRow>[] = [
+const columns: DataTableColumn<OrderListItem>[] = [
   {
     key: 'dateTime',
     header: 'Date & Time',
     width: 180,
-    sortValue: (row) => row.dateTime,
-    render: (row) => formatDateTime(row.dateTime),
+    sortValue: (row) => row.createdAt,
+    render: (row) => formatDateTime(row.createdAt),
   },
   { key: 'items', header: 'Items', width: 80, align: 'right', sortValue: (row) => row.itemsCount },
   {
@@ -41,9 +38,13 @@ const columns: DataTableColumn<MockSaleRow>[] = [
     key: 'discount',
     header: 'Discount',
     width: 120,
-    sortValue: (row) => row.discount,
+    sortValue: (row) => row.discountType,
     render: (row) =>
-      row.discount === 'None' ? <span className={styles.muted}>None</span> : <span className={styles.discountTag}>{row.discount}</span>,
+      row.discountType === 'NONE' ? (
+        <span className={styles.muted}>None</span>
+      ) : (
+        <span className={styles.discountTag}>{discountLabel(row)}</span>
+      ),
   },
   {
     key: 'total',
@@ -55,23 +56,32 @@ const columns: DataTableColumn<MockSaleRow>[] = [
   },
 ];
 
-// TODO(Phase 6): palitan ng totoong sales mula sa GET /api/reports (store-scoped) kapag tapos na ang POS
 function DailySalesPage() {
   const { user } = useAuth();
   const [search, setSearch] = useState('');
-  const [dateRange, setDateRange] = useState<DateRangeValue>({ preset: 'today', from: todayIso(), to: todayIso() });
+  const [dateRange, setDateRange] = useState<DateRangeValue>({ preset: 'today', from: toIso(new Date()), to: toIso(new Date()) });
   const [exportOpen, setExportOpen] = useState(false);
+  const [sales, setSales] = useState<OrderListItem[] | null>(null);
 
-  const storeCode = user?.store?.code ?? 'PDM';
-  const storeName = user?.store?.name ?? storeCode;
-  const cashierName = user?.profile ? `${user.profile.firstName} ${user.profile.lastName}` : 'Cashier';
+  const storeName = user?.store?.name ?? '';
 
-  const sales = useMemo(() => getMockSales([cashierName], DAYS_OF_DATA).filter((s) => s.storeCode === storeCode), [cashierName, storeCode]);
+  useEffect(() => {
+    if (!user?.storeId) return;
+    let ignore = false;
+    const to = toIso(new Date());
+    const from = toIso(new Date(Date.now() - DAYS_OF_DATA * 86_400_000));
+    getOrders({ storeId: user.storeId, from, to })
+      .then((rows) => !ignore && setSales(rows))
+      .catch(() => !ignore && setSales([]));
+    return () => {
+      ignore = true;
+    };
+  }, [user?.storeId]);
 
   const shownSales = useMemo(
     () =>
-      sales.filter((s) => {
-        const day = dateOf(s.dateTime);
+      (sales ?? []).filter((s) => {
+        const day = dateOf(s.createdAt);
         if (dateRange.from && day < dateRange.from) return false;
         if (dateRange.to && day > dateRange.to) return false;
         return true;
@@ -96,7 +106,6 @@ function DailySalesPage() {
           <h1 className={styles.title}>Daily Sales</h1>
           <p className={styles.subtitle}>Your sales summary, filterable by day.</p>
         </div>
-        <span className={styles.sampleNote}>Sample data</span>
       </header>
 
       <div className={styles.summaryBar}>
@@ -135,7 +144,7 @@ function DailySalesPage() {
         getRowId={(row) => row.id}
         searchTerm={search}
         pageSize={10}
-        emptyMessage="No sales found."
+        emptyMessage={sales === null ? 'Loading...' : 'No sales found.'}
       />
 
       {exportOpen && <ExportReportModal rows={shownSales} rangeLabel={rangeLabel} onClose={() => setExportOpen(false)} />}

@@ -1,10 +1,12 @@
-import { useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import StatCard from '../../../components/ui/StatCard/StatCard';
 import QuickActions, { type QuickActionItem } from '../../../components/ui/QuickActions/QuickActions';
 import { useAuth } from '../../../hooks/useAuth';
-import { getStoreSales, getMockSales } from '../../../utils/mockDashboard';
+import { getOrders } from '../../../api/orders.api';
+import { storeSalesSummary } from '../../../utils/salesAggregation';
 import { formatPeso, formatDateTime } from '../../../utils/format';
+import type { OrderListItem } from '../../../types';
 import styles from './CashierDashboardPage.module.css';
 
 import posIcon from '../../../assets/icons/sidebar/pos.svg';
@@ -35,30 +37,38 @@ const quickActions: QuickActionItem[] = [
   },
 ];
 
-// TODO(Phase 6): palitan ng totoong data mula sa orders at dashboard API; mock muna sa utils/mockDashboard
+const toIso = (date: Date) => date.toISOString().slice(0, 10);
+
 function CashierDashboardPage() {
   const { user } = useAuth();
-  const storeCode = user?.store?.code ?? 'PDM';
-  const storeName = user?.store?.name ?? storeCode;
-  const cashierName = user?.profile ? `${user.profile.firstName} ${user.profile.lastName}` : 'Cashier';
+  const storeName = user?.store?.name ?? '';
+  const [myOrders, setMyOrders] = useState<OrderListItem[] | null>(null);
 
-  const storeSales = useMemo(() => getStoreSales(storeCode), [storeCode]);
-  const myOrders = useMemo(
-    () => getMockSales([cashierName], 1).filter((s) => s.storeCode === storeCode && s.cashier === cashierName),
-    [storeCode, cashierName],
-  );
-  const itemsSold = useMemo(() => myOrders.reduce((sum, o) => sum + o.itemsCount, 0), [myOrders]);
+  useEffect(() => {
+    if (!user?.storeId) return;
+    let ignore = false;
+    const today = toIso(new Date());
+    getOrders({ storeId: user.storeId, cashierId: user.id, from: today, to: today })
+      .then((orders) => !ignore && setMyOrders(orders))
+      .catch(() => !ignore && setMyOrders([]));
+    return () => {
+      ignore = true;
+    };
+  }, [user?.storeId, user?.id]);
+
+  const orders = myOrders ?? [];
+  const storeSales = storeSalesSummary(orders);
+  const itemsSold = orders.reduce((sum, o) => sum + o.itemsCount, 0);
 
   return (
     <section>
       <div className={styles.header}>
         <h1 className={styles.title}>My Shift</h1>
-        <span className={styles.sampleNote}>Sample data</span>
       </div>
 
       <div className={styles.stats}>
         <StatCard variant="sales" title="My Sales Today" value={formatPeso(storeSales.sales)} caption="This store" />
-        <StatCard variant="orders" title="My Orders Today" value={myOrders.length} caption="Completed orders" />
+        <StatCard variant="orders" title="My Orders Today" value={storeSales.orders} caption="Completed orders" />
         <StatCard variant="products" title="Items Sold" value={itemsSold} caption="Drinks and snacks" />
       </div>
 
@@ -94,13 +104,13 @@ function CashierDashboardPage() {
           </Link>
         </div>
 
-        {myOrders.length === 0 ? (
+        {orders.length === 0 ? (
           <div className={styles.panelEmpty}>No orders yet today</div>
         ) : (
           <ul className={styles.orderList}>
-            {myOrders.slice(0, 8).map((order) => (
+            {orders.slice(0, 8).map((order) => (
               <li key={order.id} className={styles.orderRow}>
-                <span className={styles.orderTime}>{formatDateTime(order.dateTime)}</span>
+                <span className={styles.orderTime}>{formatDateTime(order.createdAt)}</span>
                 <span className={styles.orderMeta}>
                   {order.itemsCount} items · {order.paymentMethod}
                 </span>

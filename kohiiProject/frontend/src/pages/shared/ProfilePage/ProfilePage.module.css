@@ -46,6 +46,11 @@
   align-items: start;
 }
 
+.passwordForm {
+  margin-top: 24px;
+  margin-left: 244px;
+}
+
 .photoCard {
   display: flex;
   flex-direction: column;
@@ -305,5 +310,9 @@
 @media (max-width: 720px) {
   .layout {
     grid-template-columns: 1fr;
+  }
+
+  .passwordForm {
+    margin-left: 0;
   }
 }

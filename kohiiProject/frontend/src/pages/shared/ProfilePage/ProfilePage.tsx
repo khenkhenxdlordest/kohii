@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'r
 import styles from './ProfilePage.module.css';
 
 import { useAuth } from '../../../hooks/useAuth';
-import { updateMe, uploadMyPhoto } from '../../../api/auth.api';
+import { changeMyPassword, updateMe, uploadMyPhoto } from '../../../api/auth.api';
+import { ApiError } from '../../../api/client';
 import { jobLabel } from '../../../utils/roles';
 import Button from '../../../components/ui/Button/Button';
 import UserAvatar from '../../../components/ui/UserAvatar/UserAvatar';
@@ -29,6 +30,13 @@ function ProfilePage() {
   const [saved, setSaved] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
+
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSaved, setPasswordSaved] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -83,6 +91,29 @@ function ProfilePage() {
       setError(err instanceof Error ? err.message : 'Could not upload the photo.');
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setPasswordError('');
+    setPasswordSaved(false);
+    if (newPassword !== confirmPassword) {
+      setPasswordError('New passwords do not match.');
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      const next = await changeMyPassword({ currentPassword, newPassword });
+      setUser(next);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setPasswordSaved(true);
+    } catch (err) {
+      setPasswordError(err instanceof ApiError ? err.message : 'Could not change your password.');
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -252,6 +283,63 @@ function ProfilePage() {
           </div>
         </form>
       </div>
+
+      <form className={styles.passwordForm} onSubmit={handlePasswordSubmit}>
+        <fieldset className={styles.section}>
+          <legend className={styles.sectionTitle}>Change password</legend>
+
+          {passwordError && (
+            <p className={styles.alert} role="alert">
+              {passwordError}
+            </p>
+          )}
+          {passwordSaved && !passwordError && <p className={styles.notice}>Password updated.</p>}
+
+          <div className={styles.grid3}>
+            <label className={styles.field}>
+              <span className={styles.label}>Current password</span>
+              <input
+                className={styles.input}
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+              />
+            </label>
+            <label className={styles.field}>
+              <span className={styles.label}>New password</span>
+              <input
+                className={styles.input}
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                autoComplete="new-password"
+                minLength={8}
+                required
+              />
+            </label>
+            <label className={styles.field}>
+              <span className={styles.label}>Confirm new password</span>
+              <input
+                className={styles.input}
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+                minLength={8}
+                required
+              />
+            </label>
+          </div>
+        </fieldset>
+
+        <div className={styles.actions}>
+          <Button type="submit" loading={changingPassword}>
+            Update password
+          </Button>
+        </div>
+      </form>
 
       {viewerOpen && profile?.photoUrl && (
         <div className={styles.viewerBackdrop} onClick={() => setViewerOpen(false)}>

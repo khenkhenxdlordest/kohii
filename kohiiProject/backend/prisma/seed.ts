@@ -54,6 +54,7 @@ async function main() {
       where: { username: auth.username },
       update: {
         passwordHash,
+        mustChangePassword: true,
         profile: { upsert: { create: { firstName, lastName }, update: {} } },
       },
       create: { ...auth, passwordHash, profile: { create: { firstName, lastName } } },

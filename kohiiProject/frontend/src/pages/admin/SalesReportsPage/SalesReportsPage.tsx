@@ -7,26 +7,27 @@ import DataTable, { type DataTableColumn } from '../../../components/ui/DataTabl
 import DailySalesChart from '../../../components/ui/DailySalesChart/DailySalesChart';
 import DateRangeFilter, { defaultDateRangeValue, type DateRangeValue } from '../../../components/ui/DateRangeFilter/DateRangeFilter';
 import ExportReportModal from '../../../components/modal/admin/SalesReportsPage/ExportReportModal/ExportReportModal';
-import { getEmployees } from '../../../api/employees.api';
-import { getMockSales, STORE_CODES, type MockSaleRow } from '../../../utils/mockDashboard';
+import { getStores } from '../../../api/stores.api';
+import { getOrders } from '../../../api/orders.api';
+import { dateOf, discountLabel, sumByDay } from '../../../utils/salesAggregation';
 import { formatDateTime, formatPeso } from '../../../utils/format';
+import type { OrderListItem, Store } from '../../../types';
 
 import searchIcon from '../../../assets/icons/actions/search.svg';
 import downloadIcon from '../../../assets/icons/sidebar/stock-in.svg';
 
-type StoreFilter = 'all' | string;
+type StoreFilter = 'all' | number;
 
-const STORE_NAMES: Record<string, string> = { ALY: 'Alley', PDM: 'Podium' };
 // 90 araw (~3 buwan) para may laman kapag pumili ng nakaraang buwan gamit ang "Select month"
 const DAYS_OF_DATA = 90;
 
-const columns: DataTableColumn<MockSaleRow>[] = [
+const columns: DataTableColumn<OrderListItem>[] = [
   {
     key: 'dateTime',
     header: 'Date & Time',
     width: 180,
-    sortValue: (row) => row.dateTime,
-    render: (row) => formatDateTime(row.dateTime),
+    sortValue: (row) => row.createdAt,
+    render: (row) => formatDateTime(row.createdAt),
   },
   {
     key: 'store',
@@ -43,9 +44,9 @@ const columns: DataTableColumn<MockSaleRow>[] = [
   {
     key: 'cashier',
     header: 'Cashier',
-    searchValue: (row) => row.cashier,
-    sortValue: (row) => row.cashier,
-    render: (row, highlight) => highlight(row.cashier),
+    searchValue: (row) => row.cashierName,
+    sortValue: (row) => row.cashierName,
+    render: (row, highlight) => highlight(row.cashierName),
   },
   { key: 'items', header: 'Items', width: 80, align: 'right', sortValue: (row) => row.itemsCount },
   {
@@ -59,9 +60,13 @@ const columns: DataTableColumn<MockSaleRow>[] = [
     key: 'discount',
     header: 'Discount',
     width: 120,
-    sortValue: (row) => row.discount,
+    sortValue: (row) => row.discountType,
     render: (row) =>
-      row.discount === 'None' ? <span className={styles.muted}>None</span> : <span className={styles.discountTag}>{row.discount}</span>,
+      row.discountType === 'NONE' ? (
+        <span className={styles.muted}>None</span>
+      ) : (
+        <span className={styles.discountTag}>{discountLabel(row)}</span>
+      ),
   },
   {
     key: 'total',
@@ -73,10 +78,11 @@ const columns: DataTableColumn<MockSaleRow>[] = [
   },
 ];
 
-const dateOf = (iso: string) => iso.slice(0, 10);
+const toIso = (date: Date) => date.toISOString().slice(0, 10);
 
 function SalesReportsPage() {
-  const [cashierNames, setCashierNames] = useState<string[] | null>(null);
+  const [stores, setStores] = useState<Store[] | null>(null);
+  const [sales, setSales] = useState<OrderListItem[] | null>(null);
   const [search, setSearch] = useState('');
   const [storeFilter, setStoreFilter] = useState<StoreFilter>('all');
   const [dateRange, setDateRange] = useState<DateRangeValue>(defaultDateRangeValue);
@@ -84,27 +90,26 @@ function SalesReportsPage() {
 
   useEffect(() => {
     let ignore = false;
-    getEmployees()
-      .then((employees) => {
+    const to = toIso(new Date());
+    const from = toIso(new Date(Date.now() - DAYS_OF_DATA * 86_400_000));
+    Promise.all([getStores(), getOrders({ from, to, limit: 1000 })])
+      .then(([storeList, orders]) => {
         if (ignore) return;
-        const names = employees
-          .filter((e) => e.position === 'CASHIER' && e.profile)
-          .map((e) => `${e.profile!.firstName} ${e.profile!.lastName}`);
-        setCashierNames(names);
+        setStores(storeList);
+        setSales(orders);
       })
-      .catch(() => !ignore && setCashierNames([]));
+      .catch(() => !ignore && setSales([]));
     return () => {
       ignore = true;
     };
   }, []);
 
-  // TODO(Phase 3/6): palitan ng totoong sales mula sa GET /api/reports kapag tapos na ang POS
-  const sales = useMemo(() => getMockSales(cashierNames ?? [], DAYS_OF_DATA), [cashierNames]);
+  const storeNames = useMemo(() => new Map((stores ?? []).map((s) => [s.id, s.name])), [stores]);
 
   const shownSales = useMemo(() => {
-    return sales.filter((s) => {
-      if (storeFilter !== 'all' && s.storeCode !== storeFilter) return false;
-      const day = dateOf(s.dateTime);
+    return (sales ?? []).filter((s) => {
+      if (storeFilter !== 'all' && s.storeId !== storeFilter) return false;
+      const day = dateOf(s.createdAt);
       if (dateRange.from && day < dateRange.from) return false;
       if (dateRange.to && day > dateRange.to) return false;
       return true;
@@ -120,32 +125,20 @@ function SalesReportsPage() {
   // pinapakita ng chart (ang sarili nitong Daily/Monthly/Yearly toggle ang
   // nagde-decide kung gaano karami ang ipapakita), store filter lang ang sinusunod
   const chartSales = useMemo(
-    () => (storeFilter === 'all' ? sales : sales.filter((s) => s.storeCode === storeFilter)),
+    () => (storeFilter === 'all' ? (sales ?? []) : (sales ?? []).filter((s) => s.storeId === storeFilter)),
     [sales, storeFilter],
   );
 
-  const chartData = useMemo(() => {
-    const byDay = new Map<string, { orders: number; total: number }>();
-    for (const s of chartSales) {
-      const day = dateOf(s.dateTime);
-      const entry = byDay.get(day) ?? { orders: 0, total: 0 };
-      entry.orders += 1;
-      entry.total += s.total;
-      byDay.set(day, entry);
-    }
-    return [...byDay.entries()]
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([day, data]) => ({ day, orders: data.orders, total: data.total }));
-  }, [chartSales]);
+  const chartData = useMemo(() => sumByDay(chartSales), [chartSales]);
 
-  const chartSubtitle = storeFilter === 'all' ? 'Both stores' : (STORE_NAMES[storeFilter] ?? storeFilter);
+  const chartSubtitle = storeFilter === 'all' ? 'Both stores' : (storeNames.get(storeFilter) ?? '');
 
   const rangeLabel = useMemo(() => {
-    const storePart = storeFilter === 'all' ? 'Both stores' : (STORE_NAMES[storeFilter] ?? storeFilter);
+    const storePart = storeFilter === 'all' ? 'Both stores' : (storeNames.get(storeFilter) ?? '');
     const datePart =
       dateRange.from || dateRange.to ? `${dateRange.from || '…'} to ${dateRange.to || '…'}` : `Last ${DAYS_OF_DATA} days`;
     return `${storePart} · ${datePart}`;
-  }, [storeFilter, dateRange]);
+  }, [storeFilter, dateRange, storeNames]);
 
   return (
     <section className={styles.page}>
@@ -154,7 +147,6 @@ function SalesReportsPage() {
           <h1 className={styles.title}>Sales Reports</h1>
           <p className={styles.subtitle}>Sales per day, store and cashier.</p>
         </div>
-        <span className={styles.sampleNote}>Sample data</span>
       </header>
 
       <div className={styles.summaryBar}>
@@ -195,15 +187,15 @@ function SalesReportsPage() {
           >
             All
           </button>
-          {STORE_CODES.map((code) => (
+          {(stores ?? []).map((store) => (
             <button
-              key={code}
+              key={store.id}
               type="button"
-              className={storeFilter === code ? styles.segmentActive : ''}
-              aria-pressed={storeFilter === code}
-              onClick={() => setStoreFilter(code)}
+              className={storeFilter === store.id ? styles.segmentActive : ''}
+              aria-pressed={storeFilter === store.id}
+              onClick={() => setStoreFilter(store.id)}
             >
-              {STORE_NAMES[code] ?? code}
+              {store.name}
             </button>
           ))}
         </div>
@@ -221,7 +213,7 @@ function SalesReportsPage() {
         getRowId={(row) => row.id}
         searchTerm={search}
         pageSize={10}
-        emptyMessage={cashierNames === null ? 'Loading...' : 'No sales found.'}
+        emptyMessage={sales === null ? 'Loading...' : 'No sales found.'}
       />
 
       {exportOpen && <ExportReportModal rows={shownSales} rangeLabel={rangeLabel} onClose={() => setExportOpen(false)} />}

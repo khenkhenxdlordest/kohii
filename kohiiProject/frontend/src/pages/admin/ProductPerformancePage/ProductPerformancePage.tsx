@@ -5,7 +5,8 @@ import Icon from '../../../components/ui/Icon/Icon';
 import DataTable, { type DataTableColumn, type DataTableAction } from '../../../components/ui/DataTable/DataTable';
 import PriceHistoryModal from '../../../components/modal/admin/ProductPerformancePage/PriceHistoryModal/PriceHistoryModal';
 import { getProducts } from '../../../api/products.api';
-import { getProductPerformance, type ProductPerformance } from '../../../utils/mockDashboard';
+import { getOrders } from '../../../api/orders.api';
+import { pctChange, productSales } from '../../../utils/salesAggregation';
 import { categoryGroupLabels } from '../../../utils/categoryGroups';
 import { formatPeso } from '../../../utils/format';
 import type { CategoryGroup, Product } from '../../../types';
@@ -17,10 +18,19 @@ import trendDownIcon from '../../../assets/icons/cards/trend-down.svg';
 
 type GroupFilter = 'all' | CategoryGroup;
 
-type Row = Product & { performance: ProductPerformance };
+interface Performance {
+  unitsSold: number;
+  revenue: number;
+  trend: number;
+}
+
+type Row = Product & { performance: Performance };
+
+const toIso = (date: Date) => date.toISOString().slice(0, 10);
 
 function ProductPerformancePage() {
   const [products, setProducts] = useState<Product[] | null>(null);
+  const [performanceById, setPerformanceById] = useState<Map<number, Performance> | null>(null);
   const [loadError, setLoadError] = useState('');
   const [search, setSearch] = useState('');
   const [groupFilter, setGroupFilter] = useState<GroupFilter>('all');
@@ -28,24 +38,46 @@ function ProductPerformancePage() {
 
   useEffect(() => {
     let ignore = false;
-    getProducts()
-      .then((list) => !ignore && setProducts(list))
+    const now = new Date();
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
+    Promise.all([
+      getProducts(),
+      getOrders({ from: toIso(thisMonthStart), to: toIso(now), includeItems: true }),
+      getOrders({ from: toIso(lastMonthStart), to: toIso(lastMonthEnd), includeItems: true }),
+    ])
+      .then(([productList, thisMonthOrders, lastMonthOrders]) => {
+        if (ignore) return;
+        setProducts(productList);
+        const thisMonth = new Map(productSales(thisMonthOrders).map((p) => [p.productId, p]));
+        const lastMonth = new Map(productSales(lastMonthOrders).map((p) => [p.productId, p]));
+        const byId = new Map<number, Performance>();
+        for (const p of productList) {
+          const current = thisMonth.get(p.id);
+          const before = lastMonth.get(p.id);
+          byId.set(p.id, {
+            unitsSold: current?.qty ?? 0,
+            revenue: current?.revenue ?? 0,
+            trend: pctChange(current?.qty ?? 0, before?.qty ?? 0),
+          });
+        }
+        setPerformanceById(byId);
+      })
       .catch((err: Error) => !ignore && setLoadError(err.message));
     return () => {
       ignore = true;
     };
   }, []);
 
-  // TODO(Phase 3/6): palitan ng totoong units sold/revenue mula sa GET /api/reports kapag tapos na ang POS
   const rows: Row[] = useMemo(() => {
-    if (!products) return [];
-    const performance = getProductPerformance(products);
-    const byId = new Map(performance.map((p) => [p.id, p]));
+    if (!products || !performanceById) return [];
     return products
       .filter((p) => p.isActive)
-      .map((p) => ({ ...p, performance: byId.get(p.id)! }))
+      .map((p) => ({ ...p, performance: performanceById.get(p.id) ?? { unitsSold: 0, revenue: 0, trend: 0 } }))
       .sort((a, b) => b.performance.unitsSold - a.performance.unitsSold);
-  }, [products]);
+  }, [products, performanceById]);
 
   const shownRows = groupFilter === 'all' ? rows : rows.filter((r) => r.category.group === groupFilter);
 
@@ -117,7 +149,6 @@ function ProductPerformancePage() {
           <h1 className={styles.title}>Product Performance</h1>
           <p className={styles.subtitle}>Best and least selling products, with price history per product.</p>
         </div>
-        <span className={styles.sampleNote}>Units sold &amp; revenue: sample data</span>
       </header>
 
       {loadError ? (

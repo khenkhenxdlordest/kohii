@@ -197,17 +197,23 @@ Bawat phase: **backend endpoint → frontend page → test sa browser → commit
 **Frontend:** `orders.api.ts`, naka-wire na ang `PaymentPanel`'s "Complete sale" button, may success state na may receipt number.
 - [x] Backend: `POST /orders` — presyo/discount/stock computation, receipt number
 - [x] Frontend: checkout wiring + success state
-- [ ] **Susunod:** `GET /orders` (listing) — para mapalitan na ng totoong data ang mock sa OrdersPage/DailySalesPage
+
+### Phase 6.8 — Totoong reports/dashboard (GET /orders, tanggal ang mockDashboard)
+> Tanggal na ang lahat ng seeded/random na mock data (`utils/mockDashboard.ts`) — pinalitan ng totoong `GET /orders` + client-side aggregation. Blangko muna ang mga chart/dashboard hanggang may totoong benta sa POS (sadyang hindi gumawa ng fake Order rows).
+**Backend:** isang flexible na `GET /orders` (`OrdersController.findAll`/`OrdersService.findAll`) — filters na `storeId`, `cashierId`, `from`/`to`, `limit`, `includeItems`. Cashier: naka-force sa sariling store/cashier. Admin/Clerk: lahat ng store by default, opsyonal ang filter.
+**Frontend:** bagong `utils/salesAggregation.ts` (purong function, walang random — `sumByDay`, `sumByShift`, `storeSalesSummary`, `productSales`, `pctChange`, `discountLabel`). Pinalitan ang lahat ng pages na dating gumagamit ng `mockDashboard.ts`: `AdminDashboardPage`, `StoresPage`/`StoreSalesModal`, `ProductPerformancePage`, `SalesReportsPage`/`ExportReportModal`, `CashierDashboardPage`, `OrdersPage` (cashier), `DailySalesPage` (cashier). Tinanggal na rin ang mockDashboard.ts mismo, at ang hardcoded na "Sample data" sa `ClerkDashboardPage` (pinalitan ng totoong Inventory API na existing na pala).
+- [x] Backend: `GET /orders` (listing, role-scoped)
+- [x] Frontend: `salesAggregation.ts` + lahat ng 9+1 pages na-wire sa totoong data, tanggal na ang mockDashboard.ts
 
 ### Phase 7 — 🔒 Final Defense Hardening
-- [ ] **I-on ang password hashing:** `PASSWORD_HASHING=true` sa `backend/.env`
-- [ ] Patakbuhin ang `npx prisma db seed` (gagawing bcrypt ang mga default account) **o** i-reset ang password ng lahat ng user mula sa admin
-- [ ] Siguraduhing walang plain-text na password na natira sa `User` table (makikita sa pgAdmin; dapat nagsisimula sa `$2`)
-- [ ] Palitan ang `JWT_SECRET` ng mahabang random string
-- [ ] Ipatupad ang `mustChangePassword` sa unang login
-- [ ] Input validation sa lahat ng DTO
-- [ ] Alisin ang sample data, ilagay ang totoong menu at stock ng Kohii
-- [ ] Buong test ng bawat role (UAT)
+- [x] **I-on ang password hashing:** `PASSWORD_HASHING=true` sa `backend/.env`
+- [x] Patakbuhin ang `npx prisma db seed` (ginawang bcrypt ang mga default account)
+- [x] Walang plain-text na password na natira sa `User` table (naka-verify, nagsisimula sa `$2` lahat)
+- [x] Palitan ang `JWT_SECRET` ng mahabang random string
+- [x] `mustChangePassword` — hindi na pinipilit/naka-gate (napagdesisyunan: sasabihin na lang mismo ng Owner/Admin sa staff na magpalit); bagong `PATCH /auth/change-password` endpoint + "Change password" form sa `ProfilePage` ng bawat role, at makikita pa rin sa Admin → Employees ang "Temporary password" tag (`mustChangePassword`) kung sino ang gumagamit pa ng default password
+- [x] Input validation sa lahat ng DTO — na-audit, existing na pala ang `common/utils/validation.ts` helper pattern sa lahat ng controllers na may `@Body()` (walang gap na nahanap)
+- [ ] Alisin ang sample data, ilagay ang totoong menu at stock ng Kohii — **kailangan ng totoong listahan mula sa may-ari**, hindi ito magagawa nang walang totoong business data
+- [ ] Buong test ng bawat role (UAT) — **kailangang gawin mismo ng team**, hindi ito mapapalitan ng automated check
 
 ---
 

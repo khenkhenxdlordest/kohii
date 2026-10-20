@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { verifyPassword } from '../common/utils/password.js';
+import { hashPassword, verifyPassword } from '../common/utils/password.js';
 import { toAuditJson } from '../common/utils/audit.js';
 import type { JwtPayload } from './jwt-payload.js';
 import type { UpdateProfileDto } from './dto/update-profile.dto.js';
@@ -95,6 +95,20 @@ export class AuthService {
       });
     });
 
+    return this.me(userId);
+  }
+
+  /** Sariling password lang; walang dagdag na papel/role dito */
+  async changePassword(userId: number, currentPassword: string, newPassword: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { passwordHash: true } });
+    if (!user?.passwordHash || !(await verifyPassword(currentPassword, user.passwordHash))) {
+      throw new BadRequestException('Current password is incorrect.');
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: await hashPassword(newPassword), mustChangePassword: false },
+    });
     return this.me(userId);
   }
 

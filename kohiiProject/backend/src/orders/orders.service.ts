@@ -18,6 +18,15 @@ export interface CreateOrderInput {
   referenceNo?: string;
 }
 
+export interface FindOrdersFilters {
+  storeId?: number;
+  cashierId?: number;
+  from?: string;
+  to?: string;
+  limit: number;
+  includeItems: boolean;
+}
+
 const round2 = (n: number) => Math.round(n * 100) / 100;
 const round3 = (n: number) => Math.round(n * 1000) / 1000;
 
@@ -27,6 +36,59 @@ export class OrdersService {
     private readonly prisma: PrismaService,
     private readonly realtime: RealtimeService,
   ) {}
+
+  async findAll(filters: FindOrdersFilters) {
+    const createdAt: { gte?: Date; lte?: Date } = {};
+    if (filters.from) createdAt.gte = new Date(`${filters.from}T00:00:00`);
+    if (filters.to) createdAt.lte = new Date(`${filters.to}T23:59:59.999`);
+
+    const orders = await this.prisma.order.findMany({
+      where: {
+        ...(filters.storeId ? { storeId: filters.storeId } : {}),
+        ...(filters.cashierId ? { cashierId: filters.cashierId } : {}),
+        ...(filters.from || filters.to ? { createdAt } : {}),
+      },
+      orderBy: { createdAt: 'desc' },
+      take: filters.limit,
+      include: {
+        store: { select: { code: true, name: true } },
+        cashier: { select: { profile: { select: { firstName: true, lastName: true } } } },
+        items: true,
+      },
+    });
+
+    return orders.map((o) => ({
+      id: o.id,
+      receiptNo: o.receiptNo,
+      storeId: o.storeId,
+      storeCode: o.store.code,
+      storeName: o.store.name,
+      cashierId: o.cashierId,
+      cashierName: o.cashier.profile ? `${o.cashier.profile.firstName} ${o.cashier.profile.lastName}` : 'Cashier',
+      shiftId: o.shiftId,
+      paymentMethod: o.paymentMethod,
+      subtotal: o.subtotal.toNumber(),
+      discountType: o.discountType,
+      discountAmount: o.discountAmount.toNumber(),
+      total: o.total.toNumber(),
+      amountTendered: o.amountTendered?.toNumber() ?? null,
+      changeDue: o.changeDue?.toNumber() ?? null,
+      referenceNo: o.referenceNo,
+      createdAt: o.createdAt,
+      itemsCount: o.items.reduce((sum, i) => sum + i.qty, 0),
+      items: filters.includeItems
+        ? o.items.map((i) => ({
+            id: i.id,
+            productId: i.productId,
+            productName: i.productName,
+            size: i.size,
+            qty: i.qty,
+            unitPrice: i.unitPrice.toNumber(),
+            lineTotal: i.lineTotal.toNumber(),
+          }))
+        : undefined,
+    }));
+  }
 
   async create(input: CreateOrderInput, cashierId: number, storeId: number) {
     if (input.items.length === 0) throw new BadRequestException('Add at least one item.');
