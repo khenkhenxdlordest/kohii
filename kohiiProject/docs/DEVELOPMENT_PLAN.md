@@ -144,11 +144,13 @@ Bawat phase: **backend endpoint → frontend page → test sa browser → commit
 - [x] Backend: stock in / increment (`POST /api/inventory/items/:id/stock-in`, `{ packs }` o `{ qty }`)
 - [x] Backend: withdraw / decrement (`POST /api/inventory/items/:id/withdraw`), hindi puwedeng mag-negative kahit sabay ang kuha
 - [x] Backend: movement history (`GET /api/inventory/movements`) at low stock (`GET /api/inventory/low-stock`)
-- [ ] UI ng Stock In, Withdraw, Low Stock at Movements
-- Stock-in (bilang lang)
-- Stock audit: draft → bilang → variance → finalize (awtomatikong `AUDIT_ADJUST`)
-- Waste / spoilage log
-- Low-stock list + stock movement history
+- [x] UI: **Store Inventory** (`/clerk/inventory`) — clone ng Admin Inventory Overview minus item CRUD (walang add/edit/deactivate, Admin-only iyon); type tabs, search, Stock In/Withdraw/Log Waste/History per row
+- [x] UI: **Stock In** (`/clerk/stock-in`) — focused receiving screen + "Recently stocked in" list
+- [x] UI: **Low Stock** (`/clerk/low-stock`) — gamit ang `GET /inventory/low-stock`, Stock In action lang
+- [x] UI: **Stock Movements** (`/clerk/movements`) — buong ledger, filter by type, search
+- [x] UI: **Stock Adjustment** (`/clerk/stock-adjustment`) — dalawang tab: **Waste & Spoilage** (totoo, naka-wire sa `logWaste()`) at **Stock Count** (mock/local state lang — **walang backend pa ang `StockAudit`/`StockAuditItem`** kahit nasa schema na; may permanenteng "Draft mode" na label sa UI para malinaw)
+- [x] Dashboard: na-fill na ang "Low stock items" at "Recent stock movements" panel (dating "Coming soon")
+- [ ] Backend: StockAudit create/finalize endpoints (kailangan pa bago maging totoo ang Stock Count tab)
 
 ### Phase 5 — Admin: Monitoring
 - Sales history ng 2 store (filter: araw, store, cashier)

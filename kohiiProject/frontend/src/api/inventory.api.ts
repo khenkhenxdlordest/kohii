@@ -57,6 +57,11 @@ export function getInventoryItems(includeInactive = false) {
   return apiRequest<InventoryItem[]>(`/inventory/items${includeInactive ? '?includeInactive=true' : ''}`);
 }
 
+/** Mga item na LOW o OUT lang */
+export function getLowStockItems() {
+  return apiRequest<InventoryItem[]>('/inventory/low-stock');
+}
+
 export function createInventoryItem(data: CreateItemInput) {
   return apiRequest<InventoryItem>('/inventory/items', { method: 'POST', body: JSON.stringify(data) });
 }

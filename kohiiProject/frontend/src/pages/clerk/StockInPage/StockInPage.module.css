@@ -1,1 +1,159 @@
-/* Styles para sa StockInPage */
+.page {
+  padding-bottom: 40px;
+}
+
+.header {
+  margin-bottom: 20px;
+}
+
+.title {
+  margin: 0;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 30px;
+  font-weight: 400;
+  color: var(--espresso);
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 360px;
+  height: 42px;
+  padding: 0 14px;
+  margin-bottom: 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.search:focus-within {
+  border-color: var(--espresso);
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.notice {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #dcebe5;
+  color: #2f6b4f;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.state {
+  margin: 0;
+  padding: 48px 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  font-size: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.name {
+  display: block;
+  font-weight: 600;
+}
+
+.packs {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.qty {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ── Recent panel ── */
+.recentPanel {
+  margin-top: 24px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.recentTitle {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.recentEmpty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.recentList {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recentRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.recentRow:last-child {
+  border-bottom: none;
+}
+
+.recentName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.recentQty {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2f6b4f;
+  font-variant-numeric: tabular-nums;
+}
+
+.recentMeta {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: var(--muted);
+}

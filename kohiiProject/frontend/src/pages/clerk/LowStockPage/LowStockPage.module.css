@@ -1,1 +1,89 @@
-/* Styles para sa LowStockPage */
+.page {
+  padding-bottom: 40px;
+}
+
+.header {
+  margin-bottom: 20px;
+}
+
+.title {
+  margin: 0;
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 30px;
+  font-weight: 400;
+  color: var(--espresso);
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.notice {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #dcebe5;
+  color: #2f6b4f;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.state {
+  margin: 0;
+  padding: 48px 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  font-size: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.qty {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.lowAt {
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.statusDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.LOW {
+  background: #f6ead0;
+  color: #8a5f12;
+}
+
+.OUT {
+  background: #fbeceb;
+  color: #9b2c2c;
+}

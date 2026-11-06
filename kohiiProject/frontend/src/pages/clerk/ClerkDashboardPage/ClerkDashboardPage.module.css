@@ -36,6 +36,13 @@
   background: var(--surface);
 }
 
+.panelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .panelTitle {
   margin: 0 0 4px;
   font-size: 15px;
@@ -49,6 +56,19 @@
   color: var(--muted);
 }
 
+.panelLink {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--espresso);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.panelLink:hover {
+  text-decoration: underline;
+}
+
 .panelEmpty {
   display: grid;
   place-items: center;
@@ -58,4 +78,75 @@
   border-radius: 14px;
   font-size: 13px;
   color: var(--muted);
+}
+
+.panelList {
+  display: flex;
+  flex-direction: column;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.panelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.panelRow:last-child {
+  border-bottom: none;
+}
+
+.panelRowName {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.panelRowMeta {
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.panelRowStatus {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.panelRowStatus.LOW {
+  color: #8a5f12;
+}
+
+.panelRowStatus.OUT {
+  color: #9b2c2c;
+}
+
+.qtyIn {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #2f6b4f;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.qtyOut {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #9b2c2c;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }

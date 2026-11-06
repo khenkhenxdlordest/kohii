@@ -1,0 +1,135 @@
+.state {
+  margin: 0;
+  padding: 32px 0;
+  font-size: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  max-height: min(56vh, 480px);
+  margin: 0;
+  padding: 0 4px 0 0;
+  list-style: none;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.entry {
+  position: relative;
+  display: grid;
+  grid-template-columns: 14px 1fr auto;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  animation: entryIn 240ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.entry:last-child {
+  border-bottom: none;
+}
+
+@keyframes entryIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.body {
+  min-width: 0;
+}
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.kind {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.qty {
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.qtyIn {
+  color: #2f6b4f;
+}
+
+.qtyOut {
+  color: #9b2c2c;
+}
+
+.meta {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.note {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.balance {
+  align-self: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Kulay bawat uri ng galaw */
+.STOCK_IN.dot,
+.VOID_RETURN.dot {
+  background: #2f6b4f;
+}
+
+.WITHDRAW.dot,
+.SALE.dot {
+  background: #8a5a3c;
+}
+
+.WASTE.dot {
+  background: #9b2c2c;
+}
+
+.AUDIT_ADJUST.dot {
+  background: #b07a1a;
+}
+
+.WASTE.kind {
+  color: #9b2c2c;
+}
+
+.closeButton {
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entry {
+    animation: none;
+  }
+}
