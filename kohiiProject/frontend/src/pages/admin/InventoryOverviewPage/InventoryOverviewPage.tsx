@@ -6,7 +6,7 @@ import Button from '../../../components/ui/Button/Button';
 import Icon from '../../../components/ui/Icon/Icon';
 import StatCard from '../../../components/ui/StatCard/StatCard';
 import DataTable, { type DataTableAction, type DataTableColumn } from '../../../components/ui/DataTable/DataTable';
-import ItemFormModal from '../../../components/modal/admin/InventoryOverviewPage/ItemFormModal/ItemFormModal';
+import ItemFormModal from '../../../components/modal/shared/ItemFormModal/ItemFormModal';
 import StockActionModal, {
   type StockAction,
 } from '../../../components/modal/admin/InventoryOverviewPage/StockActionModal/StockActionModal';

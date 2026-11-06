@@ -73,15 +73,6 @@
   font-weight: 500;
 }
 
-.draftBadge {
-  margin: 0 0 16px;
-  padding: 10px 14px;
-  border-radius: 12px;
-  background: #f6ead0;
-  color: #8a5f12;
-  font-size: 13px;
-  font-weight: 600;
-}
 
 .qty {
   font-weight: 700;

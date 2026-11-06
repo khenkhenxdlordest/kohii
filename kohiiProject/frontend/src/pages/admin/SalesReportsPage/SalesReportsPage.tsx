@@ -9,7 +9,7 @@ import DateRangeFilter, { defaultDateRangeValue, type DateRangeValue } from '../
 import ExportReportModal from '../../../components/modal/admin/SalesReportsPage/ExportReportModal/ExportReportModal';
 import { getStores } from '../../../api/stores.api';
 import { getOrders } from '../../../api/orders.api';
-import { dateOf, discountLabel, sumByDay } from '../../../utils/salesAggregation';
+import { dateOf, discountLabel, sumByDay, toLocalIso } from '../../../utils/salesAggregation';
 import { formatDateTime, formatPeso } from '../../../utils/format';
 import type { OrderListItem, Store } from '../../../types';
 
@@ -78,7 +78,6 @@ const columns: DataTableColumn<OrderListItem>[] = [
   },
 ];
 
-const toIso = (date: Date) => date.toISOString().slice(0, 10);
 
 function SalesReportsPage() {
   const [stores, setStores] = useState<Store[] | null>(null);
@@ -90,8 +89,8 @@ function SalesReportsPage() {
 
   useEffect(() => {
     let ignore = false;
-    const to = toIso(new Date());
-    const from = toIso(new Date(Date.now() - DAYS_OF_DATA * 86_400_000));
+    const to = toLocalIso(new Date());
+    const from = toLocalIso(new Date(Date.now() - DAYS_OF_DATA * 86_400_000));
     Promise.all([getStores(), getOrders({ from, to, limit: 1000 })])
       .then(([storeList, orders]) => {
         if (ignore) return;

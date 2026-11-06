@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service.js';
 import {
   InventoryItemType,
+  StockAuditStatus,
   StockInSource,
   StockMovementType,
   Unit,
@@ -319,6 +320,65 @@ export class InventoryService {
       this.broadcastStock(response);
       return { item: response, movementId: movement.id };
     });
+  }
+
+  /** Isang beses na physical count; agad na-FINALIZED (walang hiwalay na draft/review step sa server) */
+  async finalizeAudit(input: { items: { inventoryItemId: number; countedQty: number }[]; note?: string }, userId: number) {
+    if (input.items.length === 0) throw new BadRequestException('Add at least one counted item.');
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const audit = await tx.stockAudit.create({
+        data: {
+          countedById: userId,
+          finalizedById: userId,
+          status: StockAuditStatus.FINALIZED,
+          note: input.note,
+          finalizedAt: new Date(),
+        },
+      });
+
+      const affectedIds: number[] = [];
+      for (const row of input.items) {
+        const item = await tx.inventoryItem.findUniqueOrThrow({ where: { id: row.inventoryItemId } });
+        const systemQty = item.stockQty.toNumber();
+        const variance = round3(row.countedQty - systemQty);
+
+        await tx.stockAuditItem.create({
+          data: {
+            stockAuditId: audit.id,
+            inventoryItemId: item.id,
+            systemQty,
+            countedQty: row.countedQty,
+            variance,
+          },
+        });
+
+        if (variance !== 0) {
+          const updated = await tx.inventoryItem.update({ where: { id: item.id }, data: { stockQty: row.countedQty } });
+          await tx.stockMovement.create({
+            data: {
+              inventoryItemId: item.id,
+              type: StockMovementType.AUDIT_ADJUST,
+              qty: variance,
+              balanceAfter: updated.stockQty,
+              userId,
+              stockAuditId: audit.id,
+              note: 'Stock count adjustment',
+            },
+          });
+          affectedIds.push(item.id);
+        }
+      }
+
+      const affected = affectedIds.length
+        ? await tx.inventoryItem.findMany({ where: { id: { in: affectedIds } }, include: itemInclude })
+        : [];
+
+      return { auditId: audit.id, affected: affected.map(toItemResponse) };
+    });
+
+    for (const item of result.affected) this.broadcastStock(item);
+    return { auditId: result.auditId, itemsAdjusted: result.affected.length };
   }
 
   async findMovements(filters: { itemId?: number; type?: StockMovementType; storeId?: number; limit: number }) {

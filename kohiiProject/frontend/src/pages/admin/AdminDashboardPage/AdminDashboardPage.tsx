@@ -11,7 +11,7 @@ import { getInventoryItems } from '../../../api/inventory.api';
 import { getAuditLog } from '../../../api/auditLog.api';
 import { getStores } from '../../../api/stores.api';
 import { getOrders } from '../../../api/orders.api';
-import { dateOf, pctChange, productSales, storeSalesSummary, sumTotals } from '../../../utils/salesAggregation';
+import { dateOf, pctChange, productSales, storeSalesSummary, sumTotals, toLocalIso } from '../../../utils/salesAggregation';
 import { formatPeso } from '../../../utils/format';
 import type { AuditLogEntry, InventoryItem, OrderListItem, Product, Store } from '../../../types';
 
@@ -69,10 +69,6 @@ const quickActions: QuickActionItem[] = [
   },
 ];
 
-function toIso(date: Date) {
-  return date.toISOString().slice(0, 10);
-}
-
 function AdminDashboardPage() {
   const [stores, setStores] = useState<Store[] | null>(null);
   const [products, setProducts] = useState<Product[] | null>(null);
@@ -82,8 +78,8 @@ function AdminDashboardPage() {
 
   useEffect(() => {
     let ignore = false;
-    const today = toIso(new Date());
-    const yesterday = toIso(new Date(Date.now() - 86_400_000));
+    const today = toLocalIso(new Date());
+    const yesterday = toLocalIso(new Date(Date.now() - 86_400_000));
 
     getStores().then((list) => !ignore && setStores(list));
     getProducts()
@@ -104,8 +100,8 @@ function AdminDashboardPage() {
   const lowStockCount = inventoryItems?.filter((i) => i.stockStatus === 'LOW').length ?? 0;
   const outOfStockCount = inventoryItems?.filter((i) => i.stockStatus === 'OUT').length ?? 0;
 
-  const [todayIso] = useState(() => toIso(new Date()));
-  const [yesterdayIso] = useState(() => toIso(new Date(Date.now() - 86_400_000)));
+  const [todayIso] = useState(() => toLocalIso(new Date()));
+  const [yesterdayIso] = useState(() => toLocalIso(new Date(Date.now() - 86_400_000)));
 
   const todayOrders = useMemo(
     () => (recentOrders ?? []).filter((o) => dateOf(o.createdAt) === todayIso),

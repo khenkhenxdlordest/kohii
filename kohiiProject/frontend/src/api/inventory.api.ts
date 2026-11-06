@@ -101,3 +101,11 @@ export function getMovements(
 export function getEmergencySummary() {
   return apiRequest<EmergencySummary>('/inventory/emergency-summary');
 }
+
+/** Pisikal na bilang ng stock; agad na-FINALIZED, ina-adjust ang stockQty kung may variance */
+export function finalizeAudit(data: { items: { inventoryItemId: number; countedQty: number }[]; note?: string }) {
+  return apiRequest<{ auditId: number; itemsAdjusted: number }>('/inventory/audits', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}

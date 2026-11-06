@@ -9,11 +9,13 @@ import StockActionModal, {
   type StockAction,
 } from '../../../components/modal/clerk/StoreInventoryPage/StockActionModal/StockActionModal';
 import ItemHistoryModal from '../../../components/modal/clerk/StoreInventoryPage/ItemHistoryModal/ItemHistoryModal';
+import ItemFormModal from '../../../components/modal/shared/ItemFormModal/ItemFormModal';
 import { getInventoryItems, getMovements } from '../../../api/inventory.api';
 import type { InventoryItem, InventoryItemType, StockStatus } from '../../../types';
 import { describePacks, formatQty, itemTypeLabels, itemTypeOrder, packEquivalent } from '../../../utils/inventory';
 import { dateOf } from '../../../utils/salesAggregation';
 
+import editIcon from '../../../assets/icons/actions/edit.svg';
 import historyIcon from '../../../assets/icons/actions/history.svg';
 import searchIcon from '../../../assets/icons/actions/search.svg';
 import stockInIcon from '../../../assets/icons/sidebar/stock-in.svg';
@@ -38,6 +40,7 @@ function StoreInventoryPage() {
 
   const [action, setAction] = useState<{ item: InventoryItem; action: StockAction } | null>(null);
   const [historyItem, setHistoryItem] = useState<InventoryItem | null>(null);
+  const [editItem, setEditItem] = useState<InventoryItem | null>(null);
   const [notice, setNotice] = useState('');
 
   useEffect(() => {
@@ -145,6 +148,7 @@ function StoreInventoryPage() {
     { id: 'in', label: 'Stock in', icon: stockInIcon, tone: 'success', onClick: (i) => setAction({ item: i, action: 'in' }) },
     { id: 'withdraw', label: 'Withdraw', icon: withdrawIcon, onClick: (i) => setAction({ item: i, action: 'withdraw' }) },
     { id: 'waste', label: 'Log waste', icon: wasteIcon, tone: 'danger', onClick: (i) => setAction({ item: i, action: 'waste' }) },
+    { id: 'edit', label: 'Edit', icon: editIcon, onClick: (i) => setEditItem(i) },
     { id: 'history', label: 'History', icon: historyIcon, onClick: (i) => setHistoryItem(i) },
   ];
 
@@ -253,6 +257,18 @@ function StoreInventoryPage() {
       )}
 
       {historyItem && <ItemHistoryModal item={historyItem} onClose={() => setHistoryItem(null)} />}
+
+      {editItem && (
+        <ItemFormModal
+          item={editItem}
+          onClose={() => setEditItem(null)}
+          onSaved={(saved) => {
+            replaceItem(saved);
+            setNotice(`${saved.name} updated.`);
+            setEditItem(null);
+          }}
+        />
+      )}
     </section>
   );
 }

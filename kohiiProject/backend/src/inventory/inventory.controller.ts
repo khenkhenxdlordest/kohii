@@ -163,6 +163,25 @@ export class InventoryController {
     );
   }
 
+  // POST /api/inventory/audits  { items: [{ inventoryItemId, countedQty }], note? }
+  @Post('audits')
+  @Roles(Role.ADMIN, Role.CLERK)
+  finalizeAudit(@Body() body: { items?: { inventoryItemId: unknown; countedQty: unknown }[]; note?: unknown }, @Req() req: AuthRequest) {
+    if (!Array.isArray(body?.items) || body.items.length === 0) {
+      throw new BadRequestException('Add at least one counted item.');
+    }
+    return this.inventoryService.finalizeAudit(
+      {
+        items: body.items.map((row) => ({
+          inventoryItemId: requireId(row?.inventoryItemId, 'Item'),
+          countedQty: requireQty(row?.countedQty, 'Counted quantity', true),
+        })),
+        note: optionalString(body?.note, 'Note', 200),
+      },
+      req.user.sub,
+    );
+  }
+
   // GET /api/inventory/movements?itemId=1&type=WITHDRAW&storeId=1&limit=50
   @Get('movements')
   @Roles(Role.ADMIN, Role.CLERK)

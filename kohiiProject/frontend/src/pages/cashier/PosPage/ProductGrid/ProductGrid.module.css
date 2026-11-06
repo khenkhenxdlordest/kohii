@@ -70,39 +70,79 @@
   font-variant-numeric: tabular-nums;
 }
 
-.sizePicker {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 10px;
-  background: rgba(31, 23, 18, 0.92);
-  backdrop-filter: blur(2px);
-}
-
-.sizeOption {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 10px;
-  background: var(--cream);
+.sizeSelect {
+  display: block;
+  width: 100%;
+  height: 32px;
+  margin-top: 8px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--ink);
   cursor: pointer;
 }
 
-.sizeOption:hover {
+.sizeSelect:focus-visible {
+  outline: 2px solid var(--espresso);
+  outline-offset: 1px;
+}
+
+.upsizeButton {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--cream);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+}
+
+.upsizeButton:hover {
+  border-color: var(--espresso);
+  color: var(--ink);
+}
+
+.upsizeButton:focus-visible {
+  outline: 2px solid var(--espresso);
+  outline-offset: 1px;
+}
+
+.upsizeActive {
+  border-color: var(--espresso);
   background: var(--espresso);
   color: var(--cream);
 }
 
-.sizeOption:focus-visible {
-  outline: 2px solid var(--cream);
+.addButton {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 7px 8px;
+  border: none;
+  border-radius: 8px;
+  background: var(--espresso);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cream);
+  cursor: pointer;
+}
+
+.addButton:hover {
+  background: var(--espresso-hover);
+}
+
+.addButton:focus-visible {
+  outline: 2px solid var(--espresso);
   outline-offset: 2px;
 }

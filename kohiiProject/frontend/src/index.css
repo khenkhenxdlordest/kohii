@@ -27,3 +27,15 @@
 body {
   margin: 0;
 }
+
+/* Tanggalin ang native number spinner arrows sa buong app — pwede namang i-type nang diretso */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}

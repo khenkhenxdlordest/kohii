@@ -4,7 +4,7 @@ import StatCard from '../../../components/ui/StatCard/StatCard';
 import QuickActions, { type QuickActionItem } from '../../../components/ui/QuickActions/QuickActions';
 import { useAuth } from '../../../hooks/useAuth';
 import { getOrders } from '../../../api/orders.api';
-import { storeSalesSummary } from '../../../utils/salesAggregation';
+import { storeSalesSummary, toLocalIso } from '../../../utils/salesAggregation';
 import { formatPeso, formatDateTime } from '../../../utils/format';
 import type { OrderListItem } from '../../../types';
 import styles from './CashierDashboardPage.module.css';
@@ -37,7 +37,6 @@ const quickActions: QuickActionItem[] = [
   },
 ];
 
-const toIso = (date: Date) => date.toISOString().slice(0, 10);
 
 function CashierDashboardPage() {
   const { user } = useAuth();
@@ -47,7 +46,7 @@ function CashierDashboardPage() {
   useEffect(() => {
     if (!user?.storeId) return;
     let ignore = false;
-    const today = toIso(new Date());
+    const today = toLocalIso(new Date());
     getOrders({ storeId: user.storeId, cashierId: user.id, from: today, to: today })
       .then((orders) => !ignore && setMyOrders(orders))
       .catch(() => !ignore && setMyOrders([]));

@@ -10,7 +10,7 @@ import { getEmployees } from '../../../api/employees.api';
 import { getOrders } from '../../../api/orders.api';
 import type { Employee, OrderListItem, StaffPosition, Store } from '../../../types';
 import { positionLabels, positionOrder, shiftLabels } from '../../../utils/roles';
-import { storeSalesSummary } from '../../../utils/salesAggregation';
+import { storeSalesSummary, toLocalIso } from '../../../utils/salesAggregation';
 
 import StoreSalesModal from '../../../components/modal/admin/StoresPage/StoreSalesModal/StoreSalesModal';
 
@@ -41,7 +41,7 @@ function StoresPage() {
 
   useEffect(() => {
     let ignore = false;
-    const today = new Date().toISOString().slice(0, 10);
+    const today = toLocalIso(new Date());
     Promise.all([getStores(), getEmployees(), getOrders({ from: today, to: today })])
       .then(([storeList, userList, orders]) => {
         if (ignore) return;

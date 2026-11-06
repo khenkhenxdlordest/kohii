@@ -4,9 +4,10 @@ import Button from '../../../components/ui/Button/Button';
 import DataTable, { type DataTableColumn } from '../../../components/ui/DataTable/DataTable';
 import DateRangeFilter, { type DateRangeValue } from '../../../components/ui/DateRangeFilter/DateRangeFilter';
 import ExportReportModal from '../../../components/modal/admin/SalesReportsPage/ExportReportModal/ExportReportModal';
+import OrderDetailModal from '../../../components/modal/cashier/OrdersPage/OrderDetailModal/OrderDetailModal';
 import { useAuth } from '../../../hooks/useAuth';
 import { getOrders } from '../../../api/orders.api';
-import { dateOf, discountLabel } from '../../../utils/salesAggregation';
+import { dateOf, discountLabel, toLocalIso } from '../../../utils/salesAggregation';
 import { formatDateTime, formatPeso } from '../../../utils/format';
 import type { OrderListItem } from '../../../types';
 import styles from './DailySalesPage.module.css';
@@ -16,7 +17,6 @@ import downloadIcon from '../../../assets/icons/sidebar/stock-in.svg';
 
 const DAYS_OF_DATA = 90;
 
-const toIso = (date: Date) => date.toISOString().slice(0, 10);
 
 const columns: DataTableColumn<OrderListItem>[] = [
   {
@@ -59,18 +59,19 @@ const columns: DataTableColumn<OrderListItem>[] = [
 function DailySalesPage() {
   const { user } = useAuth();
   const [search, setSearch] = useState('');
-  const [dateRange, setDateRange] = useState<DateRangeValue>({ preset: 'today', from: toIso(new Date()), to: toIso(new Date()) });
+  const [dateRange, setDateRange] = useState<DateRangeValue>({ preset: 'today', from: toLocalIso(new Date()), to: toLocalIso(new Date()) });
   const [exportOpen, setExportOpen] = useState(false);
   const [sales, setSales] = useState<OrderListItem[] | null>(null);
+  const [viewing, setViewing] = useState<OrderListItem | null>(null);
 
   const storeName = user?.store?.name ?? '';
 
   useEffect(() => {
     if (!user?.storeId) return;
     let ignore = false;
-    const to = toIso(new Date());
-    const from = toIso(new Date(Date.now() - DAYS_OF_DATA * 86_400_000));
-    getOrders({ storeId: user.storeId, from, to })
+    const to = toLocalIso(new Date());
+    const from = toLocalIso(new Date(Date.now() - DAYS_OF_DATA * 86_400_000));
+    getOrders({ storeId: user.storeId, from, to, includeItems: true })
       .then((rows) => !ignore && setSales(rows))
       .catch(() => !ignore && setSales([]));
     return () => {
@@ -145,9 +146,11 @@ function DailySalesPage() {
         searchTerm={search}
         pageSize={10}
         emptyMessage={sales === null ? 'Loading...' : 'No sales found.'}
+        onRowClick={(row) => setViewing(row)}
       />
 
       {exportOpen && <ExportReportModal rows={shownSales} rangeLabel={rangeLabel} onClose={() => setExportOpen(false)} />}
+      {viewing && <OrderDetailModal order={viewing} onClose={() => setViewing(null)} />}
     </section>
   );
 }

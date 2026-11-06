@@ -1,7 +1,27 @@
 // Totoong pagsusuma lang mula sa GET /orders — walang random/seeded na datos (di tulad ng dating mockDashboard.ts)
 import type { OrderListItem } from '../types';
 
-export const dateOf = (iso: string) => iso.slice(0, 10);
+/**
+ * Local calendar date (hindi UTC) bilang YYYY-MM-DD — kailangan ito para sa "today"/date-range
+ * na ipinapadala sa GET /orders, dahil local time rin ang ginagamit ng backend sa pag-parse ng
+ * from/to. Ang `date.toISOString().slice(0,10)` ay UTC-based, kaya mali pag di magkapareho ang
+ * UTC date at local date (hal. madaling araw sa PHT), nagiging maling window ang query.
+ */
+export function toLocalIso(date: Date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+/**
+ * Local calendar date (YYYY-MM-DD) ng isang order's `createdAt` (UTC ISO string mula sa backend).
+ * Dating `iso.slice(0, 10)` lang ito — UTC date, kaya mali ang paghahambing laban sa local na
+ * "today"/date-range (hal. order na ginawa 1AM PHT ay naka-slice bilang kahapon pa sa UTC).
+ */
+export function dateOf(iso: string) {
+  return toLocalIso(new Date(iso));
+}
 
 export interface DaySummary {
   /** YYYY-MM-DD */

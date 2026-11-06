@@ -6,7 +6,7 @@ import DataTable, { type DataTableColumn, type DataTableAction } from '../../../
 import PriceHistoryModal from '../../../components/modal/admin/ProductPerformancePage/PriceHistoryModal/PriceHistoryModal';
 import { getProducts } from '../../../api/products.api';
 import { getOrders } from '../../../api/orders.api';
-import { pctChange, productSales } from '../../../utils/salesAggregation';
+import { pctChange, productSales, toLocalIso } from '../../../utils/salesAggregation';
 import { categoryGroupLabels } from '../../../utils/categoryGroups';
 import { formatPeso } from '../../../utils/format';
 import type { CategoryGroup, Product } from '../../../types';
@@ -26,7 +26,6 @@ interface Performance {
 
 type Row = Product & { performance: Performance };
 
-const toIso = (date: Date) => date.toISOString().slice(0, 10);
 
 function ProductPerformancePage() {
   const [products, setProducts] = useState<Product[] | null>(null);
@@ -45,8 +44,8 @@ function ProductPerformancePage() {
 
     Promise.all([
       getProducts(),
-      getOrders({ from: toIso(thisMonthStart), to: toIso(now), includeItems: true }),
-      getOrders({ from: toIso(lastMonthStart), to: toIso(lastMonthEnd), includeItems: true }),
+      getOrders({ from: toLocalIso(thisMonthStart), to: toLocalIso(now), includeItems: true }),
+      getOrders({ from: toLocalIso(lastMonthStart), to: toLocalIso(lastMonthEnd), includeItems: true }),
     ])
       .then(([productList, thisMonthOrders, lastMonthOrders]) => {
         if (ignore) return;

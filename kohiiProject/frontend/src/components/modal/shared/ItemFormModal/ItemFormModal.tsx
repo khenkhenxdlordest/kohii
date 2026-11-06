@@ -1,16 +1,16 @@
 import { useState, type FormEvent } from 'react';
-import Modal from '../../../Modal/Modal';
-import Button from '../../../../ui/Button/Button';
-import Icon from '../../../../ui/Icon/Icon';
+import Modal from '../../Modal/Modal';
+import Button from '../../../ui/Button/Button';
+import Icon from '../../../ui/Icon/Icon';
 import styles from './ItemFormModal.module.css';
 
-import { createInventoryItem, updateInventoryItem } from '../../../../../api/inventory.api';
-import type { InventoryItem, InventoryItemType, InventoryUnit } from '../../../../../types';
-import { itemTypeLabels, itemTypeOrder, unitLabels } from '../../../../../utils/inventory';
+import { createInventoryItem, updateInventoryItem } from '../../../../api/inventory.api';
+import type { InventoryItem, InventoryItemType, InventoryUnit } from '../../../../types';
+import { itemTypeLabels, itemTypeOrder, unitLabels } from '../../../../utils/inventory';
 
-import plusIcon from '../../../../../assets/icons/actions/plus.svg';
-import closeIcon from '../../../../../assets/icons/actions/close.svg';
-import inventoryIcon from '../../../../../assets/icons/sidebar/inventory.svg';
+import plusIcon from '../../../../assets/icons/actions/plus.svg';
+import closeIcon from '../../../../assets/icons/actions/close.svg';
+import inventoryIcon from '../../../../assets/icons/sidebar/inventory.svg';
 
 interface ItemFormModalProps {
   /** null = bagong item; may laman = edit */
@@ -21,11 +21,14 @@ interface ItemFormModalProps {
   onSaved: (item: InventoryItem) => void;
 }
 
+type SizeUnit = 'base' | 'large';
+
 interface PackRow {
   key: string;
   id?: number;
   label: string;
   size: string;
+  sizeUnit: SizeUnit;
   isDefault: boolean;
 }
 
@@ -35,8 +38,22 @@ const newRow = (label = '', size = '', isDefault = false): PackRow => ({
   key: `row-${(rowKey += 1)}`,
   label,
   size,
+  sizeUnit: 'base',
   isDefault,
 });
+
+/** Mas malaking unit na pwedeng gamitin bilang mabilis na pang-type (hal. L sa halip na ilang libong ml) */
+const LARGE_UNIT: Record<InventoryUnit, { label: string; factor: number } | null> = {
+  ML: { label: 'L', factor: 1000 },
+  G: { label: 'kg', factor: 1000 },
+  PCS: null,
+};
+
+const toBase = (value: string, sizeUnit: SizeUnit, unit: InventoryUnit) => {
+  const n = Number(value) || 0;
+  const large = LARGE_UNIT[unit];
+  return sizeUnit === 'large' && large ? n * large.factor : n;
+};
 
 // Ginagamit lang sa InventoryOverviewPage: add/edit ng item at ng mga lalagyan nito
 function ItemFormModal({ item, defaultType, onClose, onSaved }: ItemFormModalProps) {
@@ -45,7 +62,9 @@ function ItemFormModal({ item, defaultType, onClose, onSaved }: ItemFormModalPro
   const [type, setType] = useState<InventoryItemType>(item?.type ?? defaultType ?? 'RAW_MATERIAL');
   const [unit, setUnit] = useState<InventoryUnit>(item?.unit ?? 'G');
   const [lowStock, setLowStock] = useState(item ? String(item.lowStockThreshold) : '');
+  const [lowStockUnit, setLowStockUnit] = useState<SizeUnit>('base');
   const [initialQty, setInitialQty] = useState('');
+  const [initialQtyUnit, setInitialQtyUnit] = useState<SizeUnit>('base');
   const [packs, setPacks] = useState<PackRow[]>(() =>
     item?.packs.length
       ? item.packs.map((p) => ({ ...newRow(p.label, String(p.size), p.isDefault), id: p.id }))
@@ -55,6 +74,14 @@ function ItemFormModal({ item, defaultType, onClose, onSaved }: ItemFormModalPro
   const [saving, setSaving] = useState(false);
 
   const unitText = unit === 'PCS' ? 'pcs' : unit.toLowerCase();
+  const large = LARGE_UNIT[unit];
+
+  // I-convert ang kasalukuyang numeric value kapag pinalitan ang unit, para hindi nagbabago ang totoong dami
+  const convertOnToggle = (value: string, from: SizeUnit, to: SizeUnit) => {
+    if (!large || from === to) return value;
+    const n = Number(value) || 0;
+    return String(to === 'large' ? n / large.factor : n * large.factor);
+  };
 
   const updateRow = (key: string, patch: Partial<PackRow>) =>
     setPacks((rows) =>
@@ -76,23 +103,23 @@ function ItemFormModal({ item, defaultType, onClose, onSaved }: ItemFormModalPro
     setError('');
     const cleanPacks = packs
       .filter((p) => p.label.trim() && Number(p.size) > 0)
-      .map((p) => ({ id: p.id, label: p.label.trim(), size: Number(p.size), isDefault: p.isDefault }));
+      .map((p) => ({ id: p.id, label: p.label.trim(), size: toBase(p.size, p.sizeUnit, unit), isDefault: p.isDefault }));
     setSaving(true);
     try {
       const saved = isEdit
         ? await updateInventoryItem(item.id, {
             name,
             type,
-            lowStockThreshold: Number(lowStock) || 0,
+            lowStockThreshold: toBase(lowStock, lowStockUnit, unit),
             packs: cleanPacks,
           })
         : await createInventoryItem({
             name,
             type,
             unit,
-            lowStockThreshold: Number(lowStock) || 0,
+            lowStockThreshold: toBase(lowStock, lowStockUnit, unit),
             packs: cleanPacks,
-            initialQty: initialQty.trim() ? Number(initialQty) : undefined,
+            initialQty: initialQty.trim() ? toBase(initialQty, initialQtyUnit, unit) : undefined,
           });
       onSaved(saved);
     } catch (err) {
@@ -198,7 +225,22 @@ function ItemFormModal({ item, defaultType, onClose, onSaved }: ItemFormModalPro
                     placeholder="0"
                     aria-label="Container size"
                   />
-                  <span className={styles.sizeUnit}>{unitText}</span>
+                  {large ? (
+                    <select
+                      className={styles.unitSelect}
+                      value={row.sizeUnit}
+                      onChange={(e) => {
+                        const nextUnit = e.target.value as SizeUnit;
+                        updateRow(row.key, { size: convertOnToggle(row.size, row.sizeUnit, nextUnit), sizeUnit: nextUnit });
+                      }}
+                      aria-label="Container size unit"
+                    >
+                      <option value="base">{unitText}</option>
+                      <option value="large">{large.label}</option>
+                    </select>
+                  ) : (
+                    <span className={styles.sizeUnit}>{unitText}</span>
+                  )}
                 </span>
                 <label className={styles.defaultPick} title="Used first when adding or taking stock">
                   <input
@@ -233,33 +275,71 @@ function ItemFormModal({ item, defaultType, onClose, onSaved }: ItemFormModalPro
 
         <div className={styles.grid2}>
           <label className={styles.field}>
-            <span className={styles.label}>Low stock at ({unitText})</span>
-            <input
-              className={styles.input}
-              type="number"
-              inputMode="decimal"
-              min="0"
-              step="any"
-              value={lowStock}
-              onChange={(e) => setLowStock(e.target.value)}
-              placeholder="0"
-            />
-          </label>
-          {!isEdit && (
-            <label className={styles.field}>
-              <span className={styles.label}>
-                Starting stock ({unitText}) <span className={styles.optional}>optional</span>
-              </span>
+            <span className={styles.label}>Low stock at</span>
+            <span className={styles.sizeWrap}>
               <input
-                className={styles.input}
+                className={styles.sizeInput}
                 type="number"
                 inputMode="decimal"
                 min="0"
                 step="any"
-                value={initialQty}
-                onChange={(e) => setInitialQty(e.target.value)}
+                value={lowStock}
+                onChange={(e) => setLowStock(e.target.value)}
                 placeholder="0"
               />
+              {large ? (
+                <select
+                  className={styles.unitSelect}
+                  value={lowStockUnit}
+                  onChange={(e) => {
+                    const nextUnit = e.target.value as SizeUnit;
+                    setLowStock((v) => convertOnToggle(v, lowStockUnit, nextUnit));
+                    setLowStockUnit(nextUnit);
+                  }}
+                  aria-label="Low stock unit"
+                >
+                  <option value="base">{unitText}</option>
+                  <option value="large">{large.label}</option>
+                </select>
+              ) : (
+                <span className={styles.sizeUnit}>{unitText}</span>
+              )}
+            </span>
+          </label>
+          {!isEdit && (
+            <label className={styles.field}>
+              <span className={styles.label}>
+                Starting stock <span className={styles.optional}>optional</span>
+              </span>
+              <span className={styles.sizeWrap}>
+                <input
+                  className={styles.sizeInput}
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="any"
+                  value={initialQty}
+                  onChange={(e) => setInitialQty(e.target.value)}
+                  placeholder="0"
+                />
+                {large ? (
+                  <select
+                    className={styles.unitSelect}
+                    value={initialQtyUnit}
+                    onChange={(e) => {
+                      const nextUnit = e.target.value as SizeUnit;
+                      setInitialQty((v) => convertOnToggle(v, initialQtyUnit, nextUnit));
+                      setInitialQtyUnit(nextUnit);
+                    }}
+                    aria-label="Starting stock unit"
+                  >
+                    <option value="base">{unitText}</option>
+                    <option value="large">{large.label}</option>
+                  </select>
+                ) : (
+                  <span className={styles.sizeUnit}>{unitText}</span>
+                )}
+              </span>
             </label>
           )}
         </div>

@@ -82,6 +82,22 @@ export interface ProductDetail extends Product {
   priceHistory: PriceHistoryEntry[];
 }
 
+export interface RecipeIngredient {
+  id: number;
+  inventoryItemId: number;
+  inventoryItemName: string;
+  unit: InventoryUnit;
+  /** Dami ng ingredient na ginagamit kada isang benta ng produkto */
+  qtyPerUnit: number;
+}
+
+export interface ProductRecipe {
+  id: number;
+  name: string;
+  category: { id: number; name: string; group: CategoryGroup };
+  recipeItems: RecipeIngredient[];
+}
+
 export interface Store {
   id: number;
   code: string;

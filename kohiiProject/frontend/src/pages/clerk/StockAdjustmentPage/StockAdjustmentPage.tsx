@@ -5,7 +5,7 @@ import styles from './StockAdjustmentPage.module.css';
 import Button from '../../../components/ui/Button/Button';
 import DataTable, { type DataTableAction, type DataTableColumn } from '../../../components/ui/DataTable/DataTable';
 import StockActionModal from '../../../components/modal/clerk/StoreInventoryPage/StockActionModal/StockActionModal';
-import { getInventoryItems, getMovements } from '../../../api/inventory.api';
+import { finalizeAudit, getInventoryItems, getMovements } from '../../../api/inventory.api';
 import type { InventoryItem, StockMovement } from '../../../types';
 import { formatDateTime } from '../../../utils/format';
 import { formatQty, wasteCauseLabels } from '../../../utils/inventory';
@@ -32,6 +32,8 @@ function StockAdjustmentPage() {
 
   const [draft, setDraft] = useState<DraftRow[] | null>(null);
   const [countNotice, setCountNotice] = useState('');
+  const [countError, setCountError] = useState('');
+  const [finalizing, setFinalizing] = useState(false);
 
   useEffect(() => {
     let ignore = false;
@@ -97,9 +99,24 @@ function StockAdjustmentPage() {
     setDraft((current) => (current ?? []).map((row) => (row.item.id === itemId ? { ...row, countedQty: value } : row)));
   };
 
-  const finalizeCount = () => {
-    setDraft(null);
-    setCountNotice('Count saved as draft locally. Backend for finalizing audits is not built yet.');
+  const finalizeCount = async () => {
+    if (!draft) return;
+    setCountError('');
+    setFinalizing(true);
+    try {
+      const result = await finalizeAudit({
+        items: draft.map((r) => ({ inventoryItemId: r.item.id, countedQty: Number(r.countedQty) || 0 })),
+      });
+      setDraft(null);
+      setCountNotice(
+        result.itemsAdjusted > 0 ? `Count finalized — ${result.itemsAdjusted} item(s) adjusted.` : 'Count finalized — no variance found.',
+      );
+      setReloadKey((k) => k + 1);
+    } catch (err) {
+      setCountError(err instanceof Error ? err.message : 'Could not finalize the count.');
+    } finally {
+      setFinalizing(false);
+    }
   };
 
   const countColumns: DataTableColumn<DraftRow>[] = useMemo(
@@ -232,11 +249,14 @@ function StockAdjustmentPage() {
         )
       ) : (
         <>
-          <p className={styles.draftBadge}>Draft mode — hindi pa naka-connect sa backend. Local lang muna ito.</p>
-
           {countNotice && (
             <p className={styles.notice} role="status">
               {countNotice}
+            </p>
+          )}
+          {countError && (
+            <p className={styles.state} role="alert">
+              {countError}
             </p>
           )}
 
@@ -251,10 +271,12 @@ function StockAdjustmentPage() {
             <>
               <DataTable rows={draft} columns={countColumns} getRowId={(r) => r.item.id} pageSize={10} emptyMessage="No items." />
               <div className={styles.countActions}>
-                <Button variant="secondary" onClick={() => setDraft(null)}>
+                <Button variant="secondary" onClick={() => setDraft(null)} disabled={finalizing}>
                   Cancel
                 </Button>
-                <Button onClick={finalizeCount}>Finalize count</Button>
+                <Button onClick={finalizeCount} loading={finalizing}>
+                  Finalize count
+                </Button>
               </div>
             </>
           )}

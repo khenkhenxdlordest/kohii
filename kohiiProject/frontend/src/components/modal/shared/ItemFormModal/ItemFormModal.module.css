@@ -125,6 +125,24 @@
   color: var(--muted);
 }
 
+.unitSelect {
+  height: 100%;
+  padding: 0 10px 0 4px;
+  border: none;
+  border-left: 1px solid var(--line);
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.unitSelect:focus-visible {
+  outline: none;
+  color: var(--espresso);
+}
+
 .defaultPick {
   display: inline-flex;
   align-items: center;
